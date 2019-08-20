@@ -1,0 +1,77 @@
+
+dlb:
+  isdandian: false
+  calprice: fasle
+
+dlbpay:
+  #公钥
+  accesskey:
+  #公钥
+  secretkey:
+  #代理商编号
+  agentnum:
+  #商户编号
+  customernum:
+  #机具编号
+  machinenum:
+  #店铺编号
+  shopnum:
+
+spring:
+  thymeleaf:
+    cache: true
+    prefix: classpath:/templates/
+  jmx:
+    default-domain: com.hlyf.smg.domin
+
+smgdatabase:
+  datasource:
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:sqlserver://:2468;databaseName=Posmanagement_main
+    username: sa
+    password: pcserver123.
+
+cluster:
+  datasource:
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:sqlserver://:2468;databaseName=Posmanagement_main
+    username: sa
+    password: pcserver123.
+  #连接池的配置信息
+  druid:
+    initialSize: 5
+    minIdle: 5
+    maxActive: 40
+    maxWait: 60000
+    timeBetweenEvictionRunsMillis: 60000  # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+    minEvictableIdleTimeMillis: 300000    # 配置一个连接在池中最小生存的时间，单位是毫秒
+    validationQuery: SELECT 1
+    testWhileIdle: true
+    testOnBorrow: false
+    testOnReturn: false
+    poolPreparedStatements: true
+    maxPoolPreparedStatementPerConnectionSize: 20
+    filters: stat,wall,log4j
+    connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+
+
+server:
+  port: 12379
+  servlet:
+    context-path: /HLSMG
+  tomcat:
+    max-http-post-size: -1
+
+
+logging:
+  config: log4j.properties
+  #src/main/resources/log4j.properties
+
+
+
+
+
+
+
+
+

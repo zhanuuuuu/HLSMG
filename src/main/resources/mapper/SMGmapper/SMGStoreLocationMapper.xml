@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hlyf.smg.dao.SMGDao.SMGStoreLocationMapper">
+  <resultMap id="BaseResultMap" type="com.hlyf.smg.domin.SMGStoreLocation">
+    <id column="lineId" jdbcType="BIGINT" property="lineId" />
+    <result column="openId" jdbcType="VARCHAR" property="openId" />
+    <result column="unionId" jdbcType="VARCHAR" property="unionId" />
+    <result column="province" jdbcType="VARCHAR" property="province" />
+    <result column="city" jdbcType="VARCHAR" property="city" />
+    <result column="location" jdbcType="VARCHAR" property="location" />
+    <result column="area" jdbcType="VARCHAR" property="area" />
+    <result column="storeId" jdbcType="VARCHAR" property="storeId" />
+    <result column="storeName" jdbcType="VARCHAR" property="storeName" />
+    <result column="longitude" jdbcType="VARCHAR" property="longitude" />
+    <result column="latitude" jdbcType="VARCHAR" property="latitude" />
+    <result column="posName" jdbcType="VARCHAR" property="posName" />
+    <result column="posId" jdbcType="VARCHAR" property="posId" />
+    <result column="limitNumber" jdbcType="INTEGER" property="limitNumber" />
+    <result column="updateTime" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from tSMGStoreLocation
+    where lineId = #{lineId,jdbcType=BIGINT}
+  </delete>
+
+  <insert id="insert" parameterType="com.hlyf.smg.domin.SMGStoreLocation">
+    insert into tSMGStoreLocation ( openId, unionId,
+      province, city, location,
+      storeId, storeName, longitude, 
+      latitude, limitNumber,area)
+    values ( #{openId,jdbcType=VARCHAR}, #{unionId,jdbcType=VARCHAR},
+      #{province,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, #{location,jdbcType=VARCHAR}, 
+      #{storeId,jdbcType=VARCHAR}, #{storeName,jdbcType=VARCHAR}, #{longitude,jdbcType=VARCHAR}, 
+      #{latitude,jdbcType=VARCHAR}, #{limitNumber,jdbcType=INTEGER}, #{area,jdbcType=VARCHAR})
+  </insert>
+
+  <update id="updateByPrimaryKey" parameterType="com.hlyf.smg.domin.SMGStoreLocation">
+    update tSMGStoreLocation
+    set openId = #{openId,jdbcType=VARCHAR},
+      unionId = #{unionId,jdbcType=VARCHAR},
+      province = #{province,jdbcType=VARCHAR},
+      city = #{city,jdbcType=VARCHAR},
+      location = #{location,jdbcType=VARCHAR},
+      longitude = #{longitude,jdbcType=VARCHAR},
+      latitude = #{latitude,jdbcType=VARCHAR},
+      limitNumber = #{limitNumber,jdbcType=INTEGER},
+      updateTime = #{updateTime,jdbcType=TIMESTAMP},
+      area=#{area,jdbcType=VARCHAR}
+    where lineId = #{lineId,jdbcType=BIGINT}
+  </update>
+
+
+  <select id="selectByStoreId" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select TOP 1 lineId, openId, unionId, province, city, location, A.storeId, storeName, longitude,
+    latitude, limitNumber, createTime, updateTime,area,posName, posid
+    from tSMGStoreLocation A LEFT JOIN tSMGPosConfiguration B
+    ON A.storeId=B.storeId
+    where A.storeId = #{storeId,jdbcType=VARCHAR}
+  </select>
+
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select lineId, openId, unionId, province, city, location, A.storeId, storeName, longitude,
+    latitude, limitNumber, createTime, updateTime,area,posName, posid
+    from tSMGStoreLocation A LEFT JOIN tSMGPosConfiguration B
+    ON A.storeId=B.storeId
+    where lineId = #{lineId}
+  </select>
+
+
+  <select id="selectAll" resultMap="BaseResultMap" parameterType="java.lang.Long">
+    select lineId, openId, unionId, province, city, location, A.storeId, storeName, longitude,
+    latitude, limitNumber, createTime, updateTime,area,posName, posid
+    from tSMGStoreLocation A LEFT JOIN tSMGPosConfiguration B
+    ON A.storeId=B.storeId
+    where 1=1
+    <if test="lineId != null ">
+      AND lineId = #{lineId}
+    </if>
+
+    ORDER BY lineId ASC
+
+  </select>
+</mapper>

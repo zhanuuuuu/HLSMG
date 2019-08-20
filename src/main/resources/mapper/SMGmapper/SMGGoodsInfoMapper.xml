@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hlyf.smg.dao.SMGDao.SMGGoodsInfoMapper">
+  <resultMap id="BaseResultMap" type="com.hlyf.smg.domin.SMGGoodsInfo">
+    <id column="lineId" jdbcType="BIGINT" property="lineId" />
+    <result column="openId" jdbcType="VARCHAR" property="openId" />
+    <result column="unionId" jdbcType="VARCHAR" property="unionId" />
+    <result column="storeId" jdbcType="VARCHAR" property="storeId" />
+    <result column="merchantOrderId" jdbcType="VARCHAR" property="merchantOrderId" />
+    <result column="payOrderId" jdbcType="VARCHAR" property="payOrderId" />
+    <result column="orderStatus" jdbcType="INTEGER" property="orderStatus" />
+    <result column="orderType" jdbcType="INTEGER" property="orderType" />
+    <result column="cGoodsNo" jdbcType="VARCHAR" property="cGoodsNo" />
+    <result column="cGoodsName" jdbcType="VARCHAR" property="cGoodsName" />
+    <result column="amount" jdbcType="DECIMAL" property="amount" />
+    <result column="discountAmount" jdbcType="DECIMAL" property="discountAmount" />
+    <result column="basePrice" jdbcType="DECIMAL" property="basePrice" />
+    <result column="price" jdbcType="DECIMAL" property="price" />
+    <result column="qty" jdbcType="INTEGER" property="qty" />
+    <result column="weight" jdbcType="DECIMAL" property="dweight" />
+    <result column="isWeight" jdbcType="BIT" property="isWeight" />
+    <result column="barcode" jdbcType="VARCHAR" property="barcode" />
+    <result column="unit" jdbcType="VARCHAR" property="unit" />
+    <result column="createTime" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="payedTime" jdbcType="TIMESTAMP" property="payedTime" />
+    <result column="checkUpNo" jdbcType="VARCHAR" property="checkUpNo" />
+    <result column="checkUpName" jdbcType="VARCHAR" property="checkUpName" />
+    <result column="receivingCode" jdbcType="VARCHAR" property="receivingCode" />
+
+  </resultMap>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from tSMGGoodsInfo
+    where lineId = #{lineId,jdbcType=BIGINT}
+  </delete>
+
+
+  <delete id="deleteSMGGoodsInfo" parameterType="com.hlyf.smg.domin.SMGGoodsInfo">
+    delete from tSMGGoodsInfo
+    where where openId = #{openId,jdbcType=VARCHAR}  AND orderStatus=0
+  </delete>
+
+  <delete id="deleteSMGGoodsInfoBybarcodeAndopenId" parameterType="com.hlyf.smg.domin.SMGGoodsInfo">
+    delete from tSMGGoodsInfo
+    where where openId = #{openId,jdbcType=VARCHAR} AND barcode = #{barcode,jdbcType=VARCHAR} AND orderStatus=0
+  </delete>
+
+
+  <insert id="insert" parameterType="com.hlyf.smg.domin.SMGGoodsInfo">
+    insert into tSMGGoodsInfo (openId, unionId,
+      storeId, merchantOrderId, payOrderId, 
+      cGoodsNo,cGoodsName, amount, discountAmount,
+      basePrice, price, qty, 
+      weight, isWeight, barcode, 
+      unit,receivingCode)
+    values ( #{openId,jdbcType=VARCHAR}, #{unionId,jdbcType=VARCHAR},
+      #{storeId,jdbcType=VARCHAR}, #{merchantOrderId,jdbcType=VARCHAR}, #{payOrderId,jdbcType=VARCHAR}, 
+      #{cGoodsNo,jdbcType=VARCHAR},#{cGoodsName,jdbcType=VARCHAR}, #{amount,jdbcType=DECIMAL}, #{discountAmount,jdbcType=DECIMAL},
+      #{basePrice,jdbcType=DECIMAL}, #{price,jdbcType=DECIMAL}, #{qty,jdbcType=INTEGER}, 
+      #{dweight,jdbcType=DECIMAL}, #{isWeight,jdbcType=BIT}, #{barcode,jdbcType=VARCHAR},
+      #{unit,jdbcType=VARCHAR},#{receivingCode,jdbcType=VARCHAR})
+  </insert>
+
+
+  <update id="updateByPrimaryKey" parameterType="com.hlyf.smg.domin.SMGGoodsInfo">
+    update tSMGGoodsInfo
+    set openId = #{openId,jdbcType=VARCHAR},
+      unionId = #{unionId,jdbcType=VARCHAR},
+      storeId = #{storeId,jdbcType=VARCHAR},
+      merchantOrderId = #{merchantOrderId,jdbcType=VARCHAR},
+      payOrderId = #{payOrderId,jdbcType=VARCHAR},
+      orderStatus = #{orderStatus,jdbcType=INTEGER},
+      orderType = #{orderType,jdbcType=INTEGER},
+      cGoodsNo = #{cGoodsNo,jdbcType=VARCHAR},
+      cGoodsName = #{cGoodsName,jdbcType=VARCHAR},
+      amount = #{amount,jdbcType=DECIMAL},
+      discountAmount = #{discountAmount,jdbcType=DECIMAL},
+      basePrice = #{basePrice,jdbcType=DECIMAL},
+      price = #{price,jdbcType=DECIMAL},
+      qty = #{qty,jdbcType=INTEGER},
+      weight = #{weight,jdbcType=DECIMAL},
+      isWeight = #{isWeight,jdbcType=BIT},
+      barcode = #{barcode,jdbcType=VARCHAR},
+      unit = #{unit,jdbcType=VARCHAR},
+      createTime = #{createTime,jdbcType=TIMESTAMP},
+      payedTime = #{payedTime,jdbcType=TIMESTAMP},
+      checkUpNo = #{checkUpNo,jdbcType=VARCHAR},
+      checkUpName = #{checkUpName,jdbcType=VARCHAR}
+    where lineId = #{lineId,jdbcType=BIGINT}
+  </update>
+
+
+  <update id="updateByBarcodeAndopenIdAndOrderStatus" parameterType="com.hlyf.smg.domin.SMGGoodsInfo">
+    update tSMGGoodsInfo
+    set
+    unionId = #{unionId,jdbcType=VARCHAR},
+    cGoodsNo = #{cGoodsNo,jdbcType=VARCHAR},
+    cGoodsName = #{cGoodsName,jdbcType=VARCHAR},
+    amount = #{amount,jdbcType=DECIMAL},
+    discountAmount = #{discountAmount,jdbcType=DECIMAL},
+    basePrice = #{basePrice,jdbcType=DECIMAL},
+    price = #{price,jdbcType=DECIMAL},
+    qty = #{qty,jdbcType=INTEGER},
+    weight = #{dweight,jdbcType=DECIMAL},
+    isWeight = #{isWeight,jdbcType=BIT},
+    unit = #{unit,jdbcType=VARCHAR}
+    where openId = #{openId,jdbcType=VARCHAR} AND barcode = #{barcode,jdbcType=VARCHAR} AND orderStatus=0
+  </update>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select lineId, openId, unionId, storeId, merchantOrderId, payOrderId, orderStatus, 
+    orderType, cGoodsNo, cGoodsName, amount, discountAmount, basePrice, price, qty, weight, 
+    isWeight, barcode, unit, createTime, payedTime, checkUpNo, checkUpName,receivingCode
+    from tSMGGoodsInfo
+    where lineId = #{lineId,jdbcType=BIGINT}
+  </select>
+
+  <select id="selectOneByOpendIdAndOrderStatus" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select TOP 1 lineId, openId, unionId, storeId, merchantOrderId, payOrderId, orderStatus,
+    orderType, cGoodsNo, cGoodsName, amount, discountAmount, basePrice, price, qty, weight,
+    isWeight, barcode, unit, createTime, payedTime, checkUpNo, checkUpName,receivingCode
+    from tSMGGoodsInfo
+    WHERE openId=#{openId} AND orderStatus=0
+  </select>
+
+
+  <select id="selectAllByOpendIdAndOrderStatus" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select lineId, openId, unionId, storeId, merchantOrderId, payOrderId, orderStatus,
+    orderType, cGoodsNo, cGoodsName, amount, discountAmount, basePrice, price, qty, weight,
+    isWeight, barcode, unit, createTime, payedTime, checkUpNo, checkUpName,receivingCode
+    from tSMGGoodsInfo
+    WHERE openId=#{openId} AND orderStatus=0
+    ORDER BY lineId ASC
+  </select>
+
+
+  <select id="selectAll" resultMap="BaseResultMap">
+    select lineId, openId, unionId, storeId, merchantOrderId, payOrderId, orderStatus, 
+    orderType, cGoodsNo, cGoodsName, amount, discountAmount, basePrice, price, qty, weight, 
+    isWeight, barcode, unit, createTime, payedTime, checkUpNo, checkUpName,receivingCode
+    from tSMGGoodsInfo
+  </select>
+</mapper>

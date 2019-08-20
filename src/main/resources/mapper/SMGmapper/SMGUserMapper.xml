@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hlyf.smg.dao.SMGDao.SMGUserMapper">
+
+  <resultMap id="BaseResultMap" type="com.hlyf.smg.domin.SMGUser">
+    <id column="lineId" jdbcType="BIGINT" property="lineId" />
+    <id column="openId" jdbcType="VARCHAR" property="openId" />
+    <result column="unionId" jdbcType="VARCHAR" property="unionId" />
+    <result column="userTel" jdbcType="VARCHAR" property="userTel" />
+    <result column="administration" jdbcType="INTEGER" property="administration" />
+    <result column="createTime" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+
+  <delete id="deleteByPrimaryKey" parameterType="map">
+    delete from tSMGUsers
+    where lineId = #{lineId,jdbcType=BIGINT}
+      and openId = #{openId,jdbcType=VARCHAR}
+  </delete>
+
+  <insert id="insert" parameterType="com.hlyf.smg.domin.SMGUser">
+    insert into tSMGUsers ( openId, unionId,
+      userTel)
+    values ( #{openId,jdbcType=VARCHAR}, #{unionId,jdbcType=VARCHAR},
+      #{userTel,jdbcType=VARCHAR})
+  </insert>
+
+  <update id="updateByPrimaryKey" parameterType="com.hlyf.smg.domin.SMGUser">
+    update tSMGUsers
+    set userTel = #{userTel,jdbcType=VARCHAR}
+    where  openId = #{openId,jdbcType=VARCHAR}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="map" resultMap="BaseResultMap">
+    select lineId, openId, unionId, userTel, administration, createTime
+    from tSMGUsers
+    where  openId = #{openId,jdbcType=VARCHAR}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select lineId, openId, unionId, userTel, administration, createTime
+    from tSMGUsers
+  </select>
+</mapper>
