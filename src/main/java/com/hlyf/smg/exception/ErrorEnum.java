@@ -37,7 +37,6 @@ public enum  ErrorEnum implements ExceptionEnum {
     SSCO010014("SSCO010014", "商品暂不支持自助结算，请到人工收银台结算"),
     SSCO010015("SSCO010015", "未定位到门店相关信息"),
     SSCO010016("SSCO010016", "商品已过保不可销售"),
-
     //自己定义
     SSCO006000("SSCO006000", "未找到相关数据"),
 

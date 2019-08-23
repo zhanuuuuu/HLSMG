@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.hlyf.smg.domin.OfflineStore;
 import com.hlyf.smg.service.OfflineStoreService;
+import com.hlyf.smg.service.PayService;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,7 @@ public class PayController {
     private static final Logger logger= LoggerFactory.getLogger(PayController.class);
 
     @Autowired
-    private OfflineStoreService offlineStoreService;
+    private PayService payService;
 
 
     @ApiOperation(value="接收支付结果通知", notes="接收支付结果通知")
@@ -44,7 +45,7 @@ public class PayController {
             @ApiResponse(code = 500, message = "服务器不能完成请求")})
     @RequestMapping(value = "/api/acceptPayResultNotice", method = {RequestMethod.POST,RequestMethod.GET})
     @ResponseBody
-    public  String getAllOfflineStores(
+    public  String acceptPayResultNotice(
                                        @RequestParam(value = "requestNum",required = true) String requestNum,
                                        @RequestParam(value = "orderNum",required = true) String orderNum,
                                        @RequestParam(value = "orderAmount",required = true) String orderAmount,
@@ -66,7 +67,9 @@ public class PayController {
             String payOrderId=requestNum;
             String opendId=jsonObject.getString("opendId");
             String merchantOrderId=jsonObject.getString("merchantOrderId");
-
+            if(status.equals("SUCCESS")){
+                this.payService.acceptPayResult(requestNum,orderNum,orderAmount,status,completeTime,payOrderId,opendId,merchantOrderId);
+            }
         }catch (Exception e){
             e.printStackTrace();
             logger.error("接收支付结果回传出问题了");

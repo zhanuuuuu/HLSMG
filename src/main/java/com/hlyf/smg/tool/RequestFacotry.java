@@ -166,6 +166,15 @@ public class RequestFacotry {
             if(jsonObject.containsKey("num")){
                 request.setNum(jsonObject.getInteger("num"));
             }
+            if(jsonObject.containsKey("pageNum")){
+                request.setPageNum(jsonObject.getInteger("pageNum"));
+            }
+            if(jsonObject.containsKey("number")){
+                request.setNumber(jsonObject.getInteger("number"));
+            }
+            if(jsonObject.containsKey("iFlag")){
+                request.setIFlag(jsonObject.getInteger("iFlag"));
+            }
             if(request!=null){
                 return request;
             }else {

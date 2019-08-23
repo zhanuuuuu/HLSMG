@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hlyf.smg.dao.SMGDao.SMGMoneySaleLogMapper">
+  <resultMap id="BaseResultMap" type="com.hlyf.smg.domin.payentity.SMGMoneySaleLog">
+    <id column="lineId" jdbcType="BIGINT" property="lineId" />
+    <id column="merchantOrderId" jdbcType="VARCHAR" property="merchantOrderId" />
+    <result column="openId" jdbcType="VARCHAR" property="openId" />
+    <result column="unionId" jdbcType="VARCHAR" property="unionId" />
+    <result column="storeId" jdbcType="VARCHAR" property="storeId" />
+    <result column="payOrderId" jdbcType="VARCHAR" property="payOrderId" />
+    <result column="amount" jdbcType="DECIMAL" property="amount" />
+    <result column="saleStatus" jdbcType="INTEGER" property="saleStatus" />
+    <result column="payType" jdbcType="VARCHAR" property="payType" />
+    <result column="saleTime" jdbcType="TIMESTAMP" property="saleTime" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="map">
+    delete from tSMGMoneySaleLog
+    where lineId = #{lineId,jdbcType=BIGINT}
+      and merchantOrderId = #{merchantOrderId,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.hlyf.smg.domin.payentity.SMGMoneySaleLog">
+    insert into tSMGMoneySaleLog ( merchantOrderId, openId,
+      unionId, storeId, payOrderId, 
+      amount, saleStatus, payType)
+    values (#{merchantOrderId,jdbcType=VARCHAR}, #{openId,jdbcType=VARCHAR},
+      #{unionId,jdbcType=VARCHAR}, #{storeId,jdbcType=VARCHAR}, #{payOrderId,jdbcType=VARCHAR}, 
+      #{amount,jdbcType=DECIMAL}, #{saleStatus,jdbcType=INTEGER}, #{payType,jdbcType=VARCHAR})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.hlyf.smg.domin.payentity.SMGMoneySaleLog">
+    update tSMGMoneySaleLog
+    set openId = #{openId,jdbcType=VARCHAR},
+      unionId = #{unionId,jdbcType=VARCHAR},
+      storeId = #{storeId,jdbcType=VARCHAR},
+      payOrderId = #{payOrderId,jdbcType=VARCHAR},
+      amount = #{amount,jdbcType=DECIMAL},
+      saleStatus = #{saleStatus,jdbcType=INTEGER},
+      payType = #{payType,jdbcType=VARCHAR},
+      saleTime = #{saleTime,jdbcType=TIMESTAMP}
+    where lineId = #{lineId,jdbcType=BIGINT}
+      and merchantOrderId = #{merchantOrderId,jdbcType=VARCHAR}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="map" resultMap="BaseResultMap">
+    select TOP 1 lineId, merchantOrderId, openId, unionId, storeId, payOrderId, amount, saleStatus,
+    payType, saleTime
+    from tSMGMoneySaleLog
+    where  merchantOrderId = #{merchantOrderId,jdbcType=VARCHAR}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select lineId, merchantOrderId, openId, unionId, storeId, payOrderId, amount, saleStatus, 
+    payType, saleTime
+    from tSMGMoneySaleLog
+  </select>
+</mapper>

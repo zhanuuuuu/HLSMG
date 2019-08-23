@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hlyf.smg.dao.SMGDao.SMGGoodsInfoLogMapper">
+  <resultMap id="BaseResultMap" type="com.hlyf.smg.domin.SMGGoodsInfo">
+    <id column="lineId" jdbcType="BIGINT" property="lineId" />
+    <result column="openId" jdbcType="VARCHAR" property="openId" />
+    <result column="unionId" jdbcType="VARCHAR" property="unionId" />
+    <result column="storeId" jdbcType="VARCHAR" property="storeId" />
+    <result column="merchantOrderId" jdbcType="VARCHAR" property="merchantOrderId" />
+    <result column="payOrderId" jdbcType="VARCHAR" property="payOrderId" />
+    <result column="orderStatus" jdbcType="INTEGER" property="orderStatus" />
+    <result column="orderType" jdbcType="INTEGER" property="orderType" />
+    <result column="cGoodsNo" jdbcType="VARCHAR" property="cGoodsNo" />
+    <result column="cGoodsName" jdbcType="VARCHAR" property="cGoodsName" />
+    <result column="amount" jdbcType="DECIMAL" property="amount" />
+    <result column="discountAmount" jdbcType="DECIMAL" property="discountAmount" />
+    <result column="basePrice" jdbcType="DECIMAL" property="basePrice" />
+    <result column="price" jdbcType="DECIMAL" property="price" />
+    <result column="qty" jdbcType="INTEGER" property="qty" />
+    <result column="weight" jdbcType="DECIMAL" property="dweight" />
+    <result column="isWeight" jdbcType="BIT" property="isWeight" />
+    <result column="barcode" jdbcType="VARCHAR" property="barcode" />
+    <result column="unit" jdbcType="VARCHAR" property="unit" />
+    <result column="createTime" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="payedTime" jdbcType="TIMESTAMP" property="payedTime" />
+    <result column="showTime" jdbcType="TIMESTAMP" property="showTime" />
+    <result column="checkUpNo" jdbcType="VARCHAR" property="checkUpNo" />
+    <result column="checkUpName" jdbcType="VARCHAR" property="checkUpName" />
+    <result column="receivingCode" jdbcType="VARCHAR" property="receivingCode" />
+    <result column="actualAmount" jdbcType="DECIMAL" property="actualAmount" />
+  </resultMap>
+
+  <select id="p_getSmgOrdersLog" parameterType="com.hlyf.smg.domin.Request"
+          resultType="com.hlyf.smg.domin.SaleLogs">
+    <![CDATA[
+        		{call p_getSmgOrders(
+        					#{openId,mode=IN,jdbcType=VARCHAR},
+        					#{pageNum,mode=IN,jdbcType=INTEGER},
+        					#{number,mode=IN,jdbcType=INTEGER},
+        					#{iFlag,mode=IN,jdbcType=INTEGER}
+        					)
+        		}
+    	]]>
+  </select>
+
+  <select id="getSMGGoodsInfoBySMGGoodsInfo" parameterType="com.hlyf.smg.domin.SMGGoodsInfo">
+    select  lineId, openId, unionId, storeId, merchantOrderId, payOrderId, orderStatus,
+    orderType, cGoodsNo, cGoodsName, amount, discountAmount, basePrice, price, qty, weight,
+    isWeight, barcode, unit, createTime, payedTime, checkUpNo, checkUpName,receivingCode,showTime
+    from tSMGGoodsInfo
+    WHERE openId=#{openId,jdbcType=VARCHAR}
+          <if test="merchantOrderId !=null ">
+             AND merchantOrderId=#{merchantOrderId,jdbcType=VARCHAR}
+          </if>
+          <if test="orderStatus !=null ">
+            AND orderStatus=#{orderStatus,jdbcType=INTEGER}
+          </if>
+  </select>
+
+</mapper>

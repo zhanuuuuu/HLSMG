@@ -8,10 +8,7 @@ import com.hlyf.smg.config.SMGConnfig;
 import com.hlyf.smg.config.SMGUrlConfig;
 import com.hlyf.smg.dao.SMGDao.*;
 import com.hlyf.smg.domin.*;
-import com.hlyf.smg.domin.payentity.OrderPay;
-import com.hlyf.smg.domin.payentity.PayBack;
-import com.hlyf.smg.domin.payentity.SMGPayConfig;
-import com.hlyf.smg.domin.payentity.SweepOrder;
+import com.hlyf.smg.domin.payentity.*;
 import com.hlyf.smg.exception.ApiSysException;
 import com.hlyf.smg.exception.ErrorEnum;
 import com.hlyf.smg.result.ResultMsg;
@@ -29,11 +26,10 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
-import static com.hlyf.smg.result.ResultMsg.ResultMsgError;
-import static com.hlyf.smg.result.ResultMsg.ResultMsgSeriousError;
-import static com.hlyf.smg.result.ResultMsg.ResultMsgSuccess;
+import static com.hlyf.smg.result.ResultMsg.*;
 import static com.hlyf.smg.tool.String_Tool.getTimeUnix;
 
 /**
@@ -65,6 +61,12 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
     @Autowired
     private PayMaper payMaper;
 
+    @Autowired
+    private SMGMoneySaleLogMapper smgMoneySaleLogMapper;
+
+
+    @Autowired
+    private SMGGoodsInfoLogMapper smgGoodsInfoLogMapper;
 
     @Override
     public List<cStoreGoods> GetcStoreGoodsS(String cStoreNo, List<String> barcodeList) throws ApiSysException {
@@ -237,7 +239,6 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
         }catch (Exception e){
             e.printStackTrace();
 
-
         }
 
         switch (urlType){
@@ -319,9 +320,30 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
                     response=this.SelectCart(request,e.getExceptionEnum().getCode(),this.smgGoodsInfoMapper);
                 }
                 break;
-                //接收支付结果通知
-            case acceptPayResultNotice:
-
+                //查询消费历史记录
+            case selectOrders:
+                try {
+                    List<SaleLogs> smgGoodsInfo= smgGoodsInfoLogMapper.p_getSmgOrdersLog(request);
+                    if(smgGoodsInfo!=null && smgGoodsInfo.size()>0){
+                        response=ResultMsgSure(smgGoodsInfo);
+                    }else {
+                        response=ResultMsgEmpty();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    log.error("查询消费记录出现问题 ",e.getMessage());
+                    response=ResultMsgSeriousError();
+                }
+                break;
+            case selectOrdersDetail:
+                try {
+                    response=CommonServiceImpl.SelectCartInfoDeatil(request,ErrorEnum.SUCCESS,smgGoodsInfoMapper);
+                } catch (ApiSysException e) {
+                    e.printStackTrace();
+                    log.error("查询订详情出错了 ",e.getExceptionEnum().toString());
+                    log.error("查询订详情出错了 ",e.getMessage());
+                    response=ResultMsgSeriousError();
+                }
                 break;
             case payOrder:   //支付下单接口
                 try{
@@ -465,7 +487,16 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
                             SMGGoodsInfo smgGoodsInfo=new SMGGoodsInfo(request.getOpenId(),
                                     request.getMerchantOrderId(),request.getPayOrderId(),
                                     0,1, Double.valueOf(jsonObject.getString("orderAmount")));
+                            smgGoodsInfo.setPayedTime(new Date());
                             int i=smgGoodsInfoMapper.updateOrderStatus(smgGoodsInfo);
+                            SMGMoneySaleLog smgMoneySaleLog=smgMoneySaleLogMapper.selectByPrimaryKey(request.getMerchantOrderId());
+                            if(smgMoneySaleLog==null){
+                                //支付记录
+                                 smgMoneySaleLog=new SMGMoneySaleLog(null,request.getMerchantOrderId(),request.getOpenId(),request.getUnionId(),
+                                         request.getStoreId(),request.getPayOrderId(),
+                                         Double.valueOf(jsonObject.getString("orderAmount")),0,"WX",null);
+                                smgMoneySaleLogMapper.insert(smgMoneySaleLog);
+                            }
                             if(i>0){
                                 log.info("同步订单成功 OpenId {}, MerchantOrderId {} ",
                                         request.getOpenId(),request.getMerchantOrderId());

@@ -33,10 +33,14 @@ public class Request {
     private String payOrderId;
     //购物中商品的id
     private Integer goodlineId;
-
+    //更改购物车商品的数量
     private Integer num;
-
     private String amount;//支付金额
+
+    //查询历史订单记录增加的属性
+    private Integer pageNum; //页数
+    private Integer number;  //每页显示多少条
+    private Integer iFlag;   //--状态 0 未支付 1 支付了待出厂 2 已完成 3~ (3以上代表全部) 全部
 
     public Request(String storeId, String unionId, String openId,
                    Integer userlineId, String posName, String posId, String barcode, String merchantOrderId) {
@@ -48,5 +52,12 @@ public class Request {
         this.posId = posId;
         this.barcode = barcode;
         this.merchantOrderId = merchantOrderId;
+    }
+
+    public Request(String openId, Integer pageNum, Integer number, Integer iFlag) {
+        this.openId = openId;
+        this.pageNum = pageNum;
+        this.number = number;
+        this.iFlag = iFlag;
     }
 }

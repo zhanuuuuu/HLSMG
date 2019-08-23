@@ -131,6 +131,48 @@ public class CommonServiceImpl {
         }
     }
 
+
+    public static String SelectCartInfoDeatil(Request request,ErrorEnum errorEnum,SMGGoodsInfoMapper smgGoodsInfoMapper) throws ApiSysException {
+        try{
+
+            List<SMGGoodsInfo> smgGoodsInfos=null;
+            SMGGoodsInfo smgGoodsInfo=new SMGGoodsInfo(request.getOpenId(),request.getMerchantOrderId(),
+                    null,null,null,null);
+            smgGoodsInfos=smgGoodsInfoMapper.getSMGGoodsInfoBySMGGoodsInfo(smgGoodsInfo);
+            double totalFee=0.0;
+            double discountFee=0.0;
+            double actualFee=0.0;
+            String merchantOrderId="";
+            BigDecimal decimaltotalFee = new BigDecimal("0");
+            BigDecimal decimaldiscountFee = new BigDecimal("0");
+            if(smgGoodsInfos!=null && smgGoodsInfos.size()>0){
+                for(SMGGoodsInfo t:smgGoodsInfos){
+                    totalFee=totalFee+t.getAmount();
+                    discountFee=discountFee+t.getDiscountAmount();
+
+                    decimaltotalFee=decimaltotalFee.add(new BigDecimal(String.valueOf(t.getAmount())));
+                    decimaldiscountFee=decimaldiscountFee.add(new BigDecimal(String.valueOf(t.getDiscountAmount())));
+                    merchantOrderId=t.getMerchantOrderId();
+                }
+                //actualFee=totalFee-discountFee;
+                totalFee=decimaltotalFee.doubleValue();
+                discountFee=decimaldiscountFee.doubleValue();
+                actualFee=decimaltotalFee.subtract(decimaldiscountFee).doubleValue();
+            }
+            cartInfo cartInfo=new cartInfo(merchantOrderId,totalFee,discountFee,actualFee,smgGoodsInfos);
+            boolean returnStatus=errorEnum==ErrorEnum.SUCCESS ? true:false;
+            ResultMsg resultMsg= new ResultMsg(returnStatus, errorEnum.getCode(),errorEnum.getMesssage(),cartInfo);
+            String s1= JSON.toJSONString(resultMsg, SerializerFeature.WriteNullListAsEmpty,
+                    SerializerFeature.WriteNullNumberAsZero,
+                    SerializerFeature.WriteNullBooleanAsFalse);
+            return s1;
+        }catch (Exception e){
+            e.printStackTrace();
+            log.error("查询订单信息:  {}",e.getMessage());
+            throw  new ApiSysException(ErrorEnum.SSCO001001);
+        }
+    }
+
     /**
      * <pre>
      *     得到未结算购物车单号

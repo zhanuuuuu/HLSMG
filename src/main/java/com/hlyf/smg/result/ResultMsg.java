@@ -38,6 +38,20 @@ public class ResultMsg implements Serializable {
         this.data = data;
     }
 
+    /**
+     * <pre>
+     *     这里不能上传null
+     * </pre>
+     * @param data
+     * @return
+     */
+    public static String ResultMsgSure(Object data){
+        data=data==null ?"":data;
+        return JSONObject.toJSONString(new ResultMsg(true, ErrorEnum.SUCCESS.getCode(),
+                        ErrorEnum.SUCCESS.getMesssage(),data),
+                SerializerFeature.WriteMapNullValue,SerializerFeature.WriteNullListAsEmpty);
+    }
+
     public static String ResultMsgSuccess(String data){
 
         return JSONObject.toJSONString(new ResultMsg(true, ErrorEnum.SUCCESS.getCode(),

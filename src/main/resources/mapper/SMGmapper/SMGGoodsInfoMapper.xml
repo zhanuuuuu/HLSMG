@@ -168,10 +168,10 @@
     from tSMGGoodsInfo
   </select>
 
-  <select id="getSMGGoodsInfoBySMGGoodsInfo" parameterType="com.hlyf.smg.domin.SMGGoodsInfo">
+  <select id="getSMGGoodsInfoBySMGGoodsInfo" parameterType="com.hlyf.smg.domin.SMGGoodsInfo" resultMap="BaseResultMap">
     select  lineId, openId, unionId, storeId, merchantOrderId, payOrderId, orderStatus,
     orderType, cGoodsNo, cGoodsName, amount, discountAmount, basePrice, price, qty, weight,
-    isWeight, barcode, unit, createTime, payedTime, checkUpNo, checkUpName,receivingCode
+    isWeight, barcode, unit, createTime, payedTime, checkUpNo, checkUpName,receivingCode,showTime
     from tSMGGoodsInfo
     WHERE openId=#{openId,jdbcType=VARCHAR}
           <if test="merchantOrderId !=null ">

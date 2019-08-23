@@ -59,4 +59,19 @@ public interface SMGUrlConfig {
      * </pre>
      */
     String orderSysn="orderSysn";
+
+    /**
+     * <pre>
+     *     查询订单记录
+     * </pre>
+     */
+    String selectOrders="selectOrders";
+
+    /**
+     * <pre>
+     *     查询订单记录
+     * </pre>
+     */
+    String selectOrdersDetail="selectOrdersDetail";
+
 }

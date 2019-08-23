@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -39,11 +40,12 @@ public class SMGGoodsInfoMapperTest {
 //                Integer qty, Double dweight,
 //                Boolean isWeight, String barcode,
 //                String unit, String receivingCode)
-        SMGGoodsInfo smgGoodsInfo=new SMGGoodsInfo("o_gYO5JnA-34K65x_kcxi25j4gMc","omLZQ0ZRIBpbYMkYJhyDy1w3xWyA",
+        SMGGoodsInfo smgGoodsInfo=new SMGGoodsInfo("o","omLZQ0ZRIBpbYMkYJhyDy1w3xWyA",
                 "0002", "12345678998765432123456789987","12345678998765432123456789987",
                 "10010","测试商品123",
                 20.0,10.0,5.0,5.0,4,0.0,
                 false,"123456","个","123456");
+        smgGoodsInfo.setShowTime(new Date());
         int i=smgGoodsInfoMapper.insert(smgGoodsInfo);
 
         log.info("我是影响行数 {}",i);
