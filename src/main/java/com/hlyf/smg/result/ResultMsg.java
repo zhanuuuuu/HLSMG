@@ -59,7 +59,7 @@ public class ResultMsg implements Serializable {
 //     error
     public static String ResultMsgSeriousError(){
         return JSONObject.toJSONString(new ResultMsg(false, ErrorEnum.SSCO001002.getCode(),
-                ErrorEnum.SSCO001001.getMesssage(),(String) ""));
+                ErrorEnum.SSCO001002.getMesssage(),(String) ""));
     }
 
 

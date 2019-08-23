@@ -36,7 +36,7 @@ public class RequestFacotry {
 
         String str = null;
         try {
-            str = getOrderId("81",145678l);
+            str = getOrderId("81",145678);
         } catch (ApiSysException e) {
             e.printStackTrace();
         }
@@ -54,7 +54,7 @@ public class RequestFacotry {
      * @return
      * @throws ApiSysException
      */
-    public static String getOrderId(String posId,Long userLineId)  throws ApiSysException {
+    public static String getOrderId(String posId,Integer userLineId)  throws ApiSysException {
         try{
             int randNumber =new Random().nextInt(900000) + 100000;
             return posId
@@ -152,17 +152,20 @@ public class RequestFacotry {
             request.setStoreId(jsonObject.getString("storeId"));
             request.setUnionId(jsonObject.getString("unionId"));
             request.setOpenId(jsonObject.getString("openId"));
-            request.setUserlineId(jsonObject.getString("userlineId"));
+            if(jsonObject.containsKey("userlineId")){
+                request.setUserlineId(jsonObject.getInteger("userlineId"));
+            }
             request.setPosName(jsonObject.getString("posName"));
             request.setPosId(jsonObject.getString("posId"));
             request.setBarcode(jsonObject.getString("barcode"));
             request.setMerchantOrderId(jsonObject.getString("merchantOrderId"));
+            request.setPayOrderId(jsonObject.getString("payOrderId"));
             if(jsonObject.containsKey("goodlineId")){
                 request.setGoodlineId(jsonObject.getInteger("goodlineId"));
             }
-
-
-
+            if(jsonObject.containsKey("num")){
+                request.setNum(jsonObject.getInteger("num"));
+            }
             if(request!=null){
                 return request;
             }else {

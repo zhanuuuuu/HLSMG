@@ -62,11 +62,31 @@ public class SMGGoodsInfo {
     @JSONField(format="yyyy-MM-dd HH:mm:ss")
     private Date payedTime;
 
+    @JSONField(format="yyyy-MM-dd HH:mm:ss")
+    private Date showTime;
+
     private String checkUpNo;
 
     private String checkUpName;
 
     private String receivingCode;
+
+    private Double actualAmount;
+
+    public SMGGoodsInfo(String openId, String merchantOrderId,
+                        String payOrderId, Integer orderType,Integer orderStatus, Double actualAmount) {
+        this.openId = openId;
+        this.merchantOrderId = merchantOrderId;
+        this.payOrderId = payOrderId;
+        this.orderType = orderType;
+        this.orderStatus = orderStatus;
+        this.actualAmount = actualAmount;
+    }
+
+    public SMGGoodsInfo(String openId, String unionId) {
+        this.openId = openId;
+        this.unionId = unionId;
+    }
 
     /**
      *  该构造方法有用
@@ -95,5 +115,32 @@ public class SMGGoodsInfo {
         this.barcode = barcode;
         this.unit = unit;
         this.receivingCode = receivingCode;
+    }
+
+    public SMGGoodsInfo(String openId, String unionId, String storeId,
+                        String merchantOrderId, String payOrderId, String cGoodsNo,
+                        String cGoodsName, Double amount, Double discountAmount,
+                        Double basePrice, Double price,
+                        Integer qty, Double dweight,
+                        Boolean isWeight, String barcode,
+                        String unit, String receivingCode,Date showTime) {
+        this.openId = openId;
+        this.unionId = unionId;
+        this.storeId = storeId;
+        this.merchantOrderId = merchantOrderId;
+        this.payOrderId = payOrderId;
+        this.cGoodsNo = cGoodsNo;
+        this.cGoodsName = cGoodsName;
+        this.amount = amount;
+        this.discountAmount = discountAmount;
+        this.basePrice = basePrice;
+        this.price = price;
+        this.qty = qty;
+        this.dweight = dweight;
+        this.isWeight = isWeight;
+        this.barcode = barcode;
+        this.unit = unit;
+        this.receivingCode = receivingCode;
+        this.showTime=showTime;
     }
 }

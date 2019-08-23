@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hlyf.smg.dao.SMGDao.CommMapper">
+
+    <!--把数据插入到临时表  计算整单优惠信息的 （前一步）-->
+
+    <update id="p_smgdatatoTemp"  >
+        <![CDATA[
+        		{call p_smgdatatoTemp(
+        					#{merchantOrderId,mode=IN,jdbcType=VARCHAR},
+        					#{openId,mode=IN,jdbcType=VARCHAR},
+        					#{cVipNo,mode=IN,jdbcType=VARCHAR},
+        					#{cPosID,mode=IN,jdbcType=VARCHAR},
+        					#{tableName,mode=IN,jdbcType=VARCHAR}
+        					)
+        		}
+    	]]>
+    </update>
+
+
+
+    <!--获取整单优惠信息的 这里只做打印功能 -->
+    <select id="get_preferentialGoods" resultType="com.hlyf.smg.domin.preferentialGoods" parameterType="java.lang.String">
+        <![CDATA[
+						{call p_ProcessPosSheetSmg_Z(
+									#{cStoreNo,mode=IN,jdbcType=VARCHAR},
+									#{machineId,mode=IN,jdbcType=VARCHAR},
+									#{cSheetNo,mode=IN,jdbcType=VARCHAR},
+									#{vipNo,mode=IN,jdbcType=VARCHAR},
+									#{fVipScoreRatio,mode=IN,jdbcType=VARCHAR},
+									#{bDiscount,mode=IN,jdbcType=VARCHAR},
+									#{callName,mode=IN,jdbcType=VARCHAR}
+									)
+						}
+				]]>
+    </select>
+
+
+</mapper>

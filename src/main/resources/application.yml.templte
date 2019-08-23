@@ -1,7 +1,9 @@
 
-dlb:
+smg:
   isdandian: false
-  calprice: fasle
+  calprice: false
+  callbackurl: 'https://www.duolabao.com'
+  isacceptpayresult: true
 
 dlbpay:
   #公钥

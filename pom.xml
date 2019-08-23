@@ -12,7 +12,7 @@
 	<artifactId>smg</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>smg</name>
-	<packaging>jar</packaging>
+	<packaging>war</packaging>
 
 	<description>扫码购</description>
 
@@ -168,7 +168,6 @@
 			<version>2.10.2</version>
 		</dependency>
 
-
 		<!-- 添加 gson 依赖 -->
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
@@ -189,14 +188,12 @@
 			<version>1.46</version>
 		</dependency>
 
-
 		<!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
 			<version>1.6</version>
 		</dependency>
-
 
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>

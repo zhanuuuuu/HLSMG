@@ -41,10 +41,10 @@ public interface SMGUrlConfig {
     String commitCartInfo="commitCartInfo";
     /**
      * <pre>
-     *     取消订单
+     *     接收支付结果回传
      * </pre>
      */
-    String cancleOrder="cancleOrder";
+    String acceptPayResultNotice="acceptPayResultNotice";
     /**
      * <pre>
      *     支付下单
@@ -52,19 +52,6 @@ public interface SMGUrlConfig {
      */
     String payOrder="payOrder";
 
-    /**
-     * <pre>
-     *     支付下单
-     * </pre>
-     */
-    String queryPayOrder="queryPayOrder";
-
-    /**
-     * <pre>
-     *     支付下单
-     * </pre>
-     */
-    String canclePayOrder="canclePayOrder";
 
     /**
      * <pre>

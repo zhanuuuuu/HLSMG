@@ -10,10 +10,10 @@ IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = object_id(N'[dbo].[tSMGGoodsI
                   openId VARCHAR(64),
                   unionId VARCHAR(64),
                   storeId VARCHAR(64),
-                  merchantOrderId VARCHAR(64), --我们的订单号
-                  payOrderId VARCHAR(64),       --小程序的支付单号（线下支付,微信支付,电子卡支付）
-                  orderStatus int DEFAULT 0,    --订单状态  0 待支付订单 1 已经支付待出厂订单 2 已完成订单（经收银员检查订单无疑问）
-                  orderType   int DEFAULT 0,    --结算方式 0 微信支付 1 前台支付 2 线上钱包支付
+                  merchantOrderId VARCHAR(64),   --我们的订单号
+                  payOrderId VARCHAR(64),        --小程序的支付单号（线下支付,微信支付,电子卡支付）
+                  orderStatus int DEFAULT 0,     --订单状态  0 待支付订单 1 已经支付待出厂订单 2 已完成订单（经收银员检查订单无疑问）
+                  orderType   int DEFAULT 0,     --结算方式 0 微信支付 1前台支付 2 线上钱包支付
                   cGoodsNo VARCHAR(30),
                   cGoodsName VARCHAR(100),
                   amount MONEY,
@@ -31,6 +31,8 @@ IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = object_id(N'[dbo].[tSMGGoodsI
                   checkUpName VARCHAR(64) DEFAULT  '',      --记录核销人员名称
                   iscommit   int DEFAULT 0,    --未提交 0 提交 1 （给线下增加提取字段）
                   receivingCode VARCHAR(30) DEFAULT  '',
+                  actualAmount MONEY DEFAULT 0,   --实际付款金额
+                  showTime DATETIME DEFAULT (GETDATE()),  --订单上面显示的时间
                   primary key(lineId,merchantOrderId)   --联合主键
               )
 /*
@@ -83,49 +85,27 @@ IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = object_id(N'[dbo].[tSMGMoneyS
                       AND OBJECTPROPERTY(id, N'IsUserTable') = 1)
           DROP TABLE [dbo].[tSMGMoneySaleLog]
            CREATE TABLE tSMGMoneySaleLog(
-                  --下面是商品的基础字段
                   lineId   BIGINT IDENTITY(1,1),  --行号
                   openId VARCHAR(64),
                   unionId VARCHAR(64),
                   storeId VARCHAR(64),
                   merchantOrderId VARCHAR(64),  --我们的订单号(消费)  如果是充值(充值的单号)
+                  payOrderId VARCHAR(64),        --哆啦宝支付单据
                   amount MONEY,                   --消费（或）的金额
                   saleStatus INT  DEFAULT 0,     --默认0 消费 1 充值
+                  payType VARCHAR(32),            --消费或支付方式
                   saleTime DATETIME DEFAULT (GETDATE())   --消费（或充值）的时间
-                  primary key(lineId)
+                  primary key(lineId,merchantOrderId)
               )
 
-
-/*
-     微信支付订单表(可能是充值  也可能是支付)
- */
-IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = object_id(N'[dbo].[tSMGWxPayLog]')
-                      AND OBJECTPROPERTY(id, N'IsUserTable') = 1)
-          DROP TABLE [dbo].[tSMGWxPayLog]
-           CREATE TABLE tSMGWxPayLog(
-                  --下面是商品的基础字段
-                  lineId   BIGINT IDENTITY(1,1),  --行号
-                  openId VARCHAR(64),
-                  unionId VARCHAR(64),
-                  storeId VARCHAR(64),
-                  merchantOrderId VARCHAR(64),  --我们的订单号（结算）
-                  payOrderId VARCHAR(64),        --哆啦宝支付单据
-                  amount MONEY,                   --消费的金额
-                  payStatus INT  DEFAULT 0,     --默认0 发起支付 1 支付成功
-                  createTime DATETIME DEFAULT (GETDATE())
-                  primary key(lineId)
-              )
 /*
      支付配置表
- */
-
+*/
 IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = object_id(N'[dbo].[tSMGPayConfig]')
             AND OBJECTPROPERTY(id, N'IsUserTable') = 1)
 DROP TABLE [dbo].[tSMGPayConfig]
  CREATE TABLE tSMGPayConfig(
         lineId   BIGINT IDENTITY(1,1),  --行号
-        tenant VARCHAR(64),
-        tenantName VARCHAR(64),        --商户名称
         accesskey VARCHAR(100),
         secretkey VARCHAR(100),
         agentnum VARCHAR(64),
@@ -135,7 +115,7 @@ DROP TABLE [dbo].[tSMGPayConfig]
         shopnum VARCHAR(64),
         storeId VARCHAR(64),
         createTime DATETIME DEFAULT (GETDATE())
-        primary key(tenant,storeId,sn)
+        primary key(storeId,sn)
 )
 
 --配置表

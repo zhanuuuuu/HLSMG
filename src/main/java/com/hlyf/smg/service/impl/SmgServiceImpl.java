@@ -3,27 +3,38 @@ package com.hlyf.smg.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.hlyf.smg.config.DlbPayConnfig;
 import com.hlyf.smg.config.SMGConnfig;
 import com.hlyf.smg.config.SMGUrlConfig;
-import com.hlyf.smg.dao.SMGDao.OfflineStoreDao;
-import com.hlyf.smg.dao.SMGDao.PosMainMapper;
-import com.hlyf.smg.dao.SMGDao.SMGGoodsInfoMapper;
+import com.hlyf.smg.dao.SMGDao.*;
 import com.hlyf.smg.domin.*;
+import com.hlyf.smg.domin.payentity.OrderPay;
+import com.hlyf.smg.domin.payentity.PayBack;
+import com.hlyf.smg.domin.payentity.SMGPayConfig;
+import com.hlyf.smg.domin.payentity.SweepOrder;
 import com.hlyf.smg.exception.ApiSysException;
 import com.hlyf.smg.exception.ErrorEnum;
 import com.hlyf.smg.result.ResultMsg;
 import com.hlyf.smg.service.SmgService;
 import com.hlyf.smg.tool.RequestFacotry;
+import com.hlyf.smg.tool.SHA1;
 import com.hlyf.smg.tool.String_Tool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.hlyf.smg.result.ResultMsg.ResultMsgError;
 import static com.hlyf.smg.result.ResultMsg.ResultMsgSeriousError;
+import static com.hlyf.smg.result.ResultMsg.ResultMsgSuccess;
+import static com.hlyf.smg.tool.String_Tool.getTimeUnix;
 
 /**
  * Created by Administrator on 2019-08-15.
@@ -41,6 +52,19 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
 
     @Autowired
     private SMGGoodsInfoMapper smgGoodsInfoMapper;
+
+    @Autowired
+    private CommMapper commMapper;
+
+    @Autowired
+    private DlbPayConnfig dlbPayConnfig;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @Autowired
+    private PayMaper payMaper;
+
 
     @Override
     public List<cStoreGoods> GetcStoreGoodsS(String cStoreNo, List<String> barcodeList) throws ApiSysException {
@@ -61,13 +85,16 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
         }
         return list;
     }
-    private void SaveGoodsToCartInfo(Request request, List<cStoreGoods> cStoreGoodsList, FrushGood frushGood) throws ApiSysException{
+    @Override
+    public void SaveGoodsToCartInfo(Request request, List<cStoreGoods> cStoreGoodsList, FrushGood frushGood) throws ApiSysException{
         try{
             //TODO 得到单号
-            String merchantOrderId=CommonServiceImpl.getMerchantOrderId(request, smgGoodsInfoMapper);
+            OrderComm orderComm=CommonServiceImpl.getMerchantOrderIdTrue(request, smgGoodsInfoMapper);
             //得到商品信息
             cStoreGoods storeGoods=cStoreGoodsList.get(0);
             Double NomalPrice=storeGoods.getFNormalPrice();
+
+            SMGGoodsInfo smgGoodsInfo=null;
             log.info("查询到的商品信息  {}", JSON.toJSON(storeGoods).toString());
             //如果是生鲜 直接保存到购物车
             if(frushGood.isWeight()){
@@ -75,7 +102,7 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
                 if(request.getBarcode().length()==13){
                     if(NomalPrice==0){
                         log.error("查询商品的时间出错了: 查询出来的单价是 0");
-                        throw  new ApiSysException(ErrorEnum.SSCO001001);
+                        throw  new ApiSysException(ErrorEnum.SSCO001002);
                     }
                     double wight=frushGood.getAllMoney()/NomalPrice;
                     wight=new Double(String_Tool.String_IS_Two(wight)) ;
@@ -86,19 +113,39 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
                 if(smgConnfig.getCalprice() && request.getBarcode().length()==18){
                     NomalPrice=frushGood.getAllMoney()/frushGood.getWeightwight();
                 }
-
+                //TODO 如果是称重商品   直接插入数据库
+                //        SMGGoodsInfo(String openId, String unionId, String storeId,
+//                String merchantOrderId, String payOrderId, String cGoodsNo,
+//                String cGoodsName, Double amount, Double discountAmount,
+//                Double basePrice, Double price,
+//                Integer qty, Double dweight,
+//                Boolean isWeight, String barcode,
+//                String unit, String receivingCode)
+                  smgGoodsInfo=new SMGGoodsInfo(request.getOpenId(),request.getUnionId(),request.getStoreId(),orderComm.getMerchantOrderId(),
+                          orderComm.getMerchantOrderId(),storeGoods.getCGoodsNo(),storeGoods.getCGoodsName(),frushGood.getAllMoney(),0.0,
+                        NomalPrice,NomalPrice,
+                        0,frushGood.getWeightwight(),true,frushGood.getBarcode(),"kg",frushGood.getReceivingCode(),orderComm.getShowTime());
+                //直接插入
+                smgGoodsInfoMapper.insert(smgGoodsInfo);
             }else {
                 //检测购物车是否存在改商品
-
-
-
+                 smgGoodsInfo =smgGoodsInfoMapper
+                        .selectByOpendIdAndOrderStatusAndBarcode(request.getOpenId(),frushGood.getBarcode());
                 //如果没有改商品保存的购物车   如果存在就更新该购物车
-                if(""!=null){
-
-
-                }else{
-
-
+                 if(smgGoodsInfo!=null){
+                   int num=smgGoodsInfo.getQty()+1;
+                   Double allMoney=num*NomalPrice;
+                     smgGoodsInfo=new SMGGoodsInfo(request.getOpenId(),request.getUnionId(),request.getStoreId(),orderComm.getMerchantOrderId(),
+                             orderComm.getMerchantOrderId(),storeGoods.getCGoodsNo(),storeGoods.getCGoodsName(),allMoney,0.0,
+                             NomalPrice,NomalPrice,
+                             num,0.0,false,frushGood.getBarcode(),storeGoods.getCUnit(),frushGood.getReceivingCode(),orderComm.getShowTime());
+                     smgGoodsInfoMapper.updateByBarcodeAndopenIdAndOrderStatus(smgGoodsInfo);
+                }else {
+                     smgGoodsInfo=new SMGGoodsInfo(request.getOpenId(),request.getUnionId(),request.getStoreId(),orderComm.getMerchantOrderId(),
+                             orderComm.getMerchantOrderId(),storeGoods.getCGoodsNo(),storeGoods.getCGoodsName(),NomalPrice,0.0,
+                             NomalPrice,NomalPrice,
+                             1,0.0,false,frushGood.getBarcode(),storeGoods.getCUnit(),frushGood.getReceivingCode(),orderComm.getShowTime());
+                     smgGoodsInfoMapper.insert(smgGoodsInfo);
                 }
             }
         }catch (Exception e){
@@ -108,6 +155,61 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
         }
     }
 
+    @Override
+    public void UpdateGoodsToCartInfo(Request request, List<cStoreGoods> cStoreGoodsList, FrushGood frushGood) throws ApiSysException{
+        try{
+            //TODO 得到单号
+            String merchantOrderId=CommonServiceImpl.getMerchantOrderId(request, smgGoodsInfoMapper);
+            //得到商品信息
+            cStoreGoods storeGoods=cStoreGoodsList.get(0);
+            Double NomalPrice=storeGoods.getFNormalPrice();
+            SMGGoodsInfo smgGoodsInfo=null;
+            log.info("查询到的商品信息UpdateGoodsToCartInfo  {}", JSON.toJSON(storeGoods).toString());
+            //如果没有改商品保存的购物车   如果存在就更新该购物车
+            if(request.getNum()!=null && request.getNum()!=0){
+                int num=request.getNum();
+                Double allMoney=num*NomalPrice;
+                smgGoodsInfo=new SMGGoodsInfo(request.getOpenId(),request.getUnionId(),request.getStoreId(),merchantOrderId,
+                        merchantOrderId,storeGoods.getCGoodsNo(),storeGoods.getCGoodsName(),allMoney,0.0,
+                        NomalPrice,NomalPrice,
+                        num,0.0,false,frushGood.getBarcode(),storeGoods.getCUnit(),frushGood.getReceivingCode());
+                smgGoodsInfoMapper.updateByBarcodeAndopenIdAndOrderStatus(smgGoodsInfo);
+            }else {
+                //如果上传0 则删除
+                smgGoodsInfo=new SMGGoodsInfo(request.getOpenId(),request.getUnionId(),request.getStoreId(),merchantOrderId,
+                        merchantOrderId,storeGoods.getCGoodsNo(),storeGoods.getCGoodsName(),20.0,0.0,
+                        NomalPrice,NomalPrice,
+                        1,0.0,false,frushGood.getBarcode(),storeGoods.getCUnit(),frushGood.getReceivingCode());
+                smgGoodsInfoMapper.deleteSMGGoodsInfoBybarcodeAndopenId(smgGoodsInfo);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            log.error("修改商品的时间出错了:  {}",e.getMessage());
+            throw  new ApiSysException(ErrorEnum.SSCO001002);
+        }
+    }
+
+    @Override
+    public void DeleteGoodsToCartInfo(Request request, List<cStoreGoods> cStoreGoodsList, FrushGood frushGood) throws ApiSysException{
+        try{
+            smgGoodsInfoMapper.deleteByPrimaryKey(request.getGoodlineId().longValue());
+        }catch (Exception e){
+            e.printStackTrace();
+            log.error("删除商品的时间出错了:  {}",e.getMessage());
+            throw  new ApiSysException(ErrorEnum.SSCO001002);
+        }
+    }
+    @Override
+    public void ClearGoodsToCartInfo(Request request, List<cStoreGoods> cStoreGoodsList, FrushGood frushGood) throws ApiSysException{
+        try{
+            SMGGoodsInfo smgGoodsInfo=new SMGGoodsInfo(request.getOpenId(),request.getUnionId());
+            smgGoodsInfoMapper.deleteSMGGoodsInfo(smgGoodsInfo);
+        }catch (Exception e){
+            e.printStackTrace();
+            log.error("清除购物车的时间出错了:  {}",e.getMessage());
+            throw  new ApiSysException(ErrorEnum.SSCO001002);
+        }
+    }
     @Override
     public String SelectCart (Request request,String code,SMGGoodsInfoMapper smgGoodsInfoMapper) {
         try {
@@ -150,7 +252,6 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
                     List<cStoreGoods> storeGoodsList=this.GetcStoreGoodsS(request.getStoreId(),list);
                     RequestFacotry.GoodListIsEmpty(storeGoodsList);
                     log.info("获取出来的商品是 {}",JSONObject.toJSON(storeGoodsList).toString());
-                    //TODO 这里写业务逻辑  查询 或者更改
                     this.SaveGoodsToCartInfo(
                             request,
                             storeGoodsList,frushGood);
@@ -163,28 +264,224 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
                 }
                 break;
             case updateGoods:
-
+                try {
+                    FrushGood frushGood=CommonServiceImpl.getIsFrushGood(request, this.posMain);
+                    List<String> list=new ArrayList<>();
+                    list.add(frushGood.getBarcode());
+                    List<cStoreGoods> storeGoodsList=this.GetcStoreGoodsS(request.getStoreId(),list);
+                    RequestFacotry.GoodListIsEmpty(storeGoodsList);
+                    log.info("获取出来的商品是 {}",JSONObject.toJSON(storeGoodsList).toString());
+                    this.UpdateGoodsToCartInfo(
+                            request,
+                            storeGoodsList,frushGood);
+                    response=CommonServiceImpl.SelectCartInfo(request,ErrorEnum.SUCCESS,smgGoodsInfoMapper);
+                } catch (ApiSysException e) {
+                    e.printStackTrace();
+                    log.error("更改商品出错了 ",e.getExceptionEnum().toString());
+                    log.error("更改商品出错了 ",e.getMessage());
+                    response=this.SelectCart(request,e.getExceptionEnum().getCode(),this.smgGoodsInfoMapper);
+                }
                 break;
             case deleteGoods:
-
+                try {
+                    this.DeleteGoodsToCartInfo(
+                            request,
+                            null,null);
+                    response=CommonServiceImpl.SelectCartInfo(request,ErrorEnum.SUCCESS,smgGoodsInfoMapper);
+                } catch (ApiSysException e) {
+                    e.printStackTrace();
+                    log.error("删除商品出错了 ",e.getExceptionEnum().toString());
+                    log.error("删除商品出错了 ",e.getMessage());
+                    response=this.SelectCart(request,e.getExceptionEnum().getCode(),this.smgGoodsInfoMapper);
+                }
                 break;
             case clearCartInfo:
-
+                try {
+                    this.ClearGoodsToCartInfo(
+                            request,
+                            null,null);
+                    response=CommonServiceImpl.SelectCartInfo(request,ErrorEnum.SUCCESS,smgGoodsInfoMapper);
+                } catch (ApiSysException e) {
+                    e.printStackTrace();
+                    log.error("删除商品出错了 ",e.getExceptionEnum().toString());
+                    log.error("删除商品出错了 ",e.getMessage());
+                    response=this.SelectCart(request,e.getExceptionEnum().getCode(),this.smgGoodsInfoMapper);
+                }
                 break;
             case commitCartInfo:
+                try {
+                    this.commitCartInfo(request,ErrorEnum.SUCCESS);
+                    response=CommonServiceImpl.SelectCartInfo(request,ErrorEnum.SUCCESS,smgGoodsInfoMapper);
+                } catch (ApiSysException e) {
+                    e.printStackTrace();
+                    log.error("提交购物车出错了 ",e.getExceptionEnum().toString());
+                    log.error("提交购物车出错了 ",e.getMessage());
+                    response=this.SelectCart(request,e.getExceptionEnum().getCode(),this.smgGoodsInfoMapper);
+                }
+                break;
+                //接收支付结果通知
+            case acceptPayResultNotice:
 
                 break;
-            case cancleOrder:
-
-                break;
-            case orderSysn:
+            case payOrder:   //支付下单接口
                 try{
+                    //TODO 第一步 判断前段上传的单号是否已经支付过了
+//                     public SMGGoodsInfo(String openId, String merchantOrderId,
+//                            String payOrderId, Integer orderType,Integer orderStatus, Double actualAmount)
+                    SMGGoodsInfo smgGoodsInfo=new SMGGoodsInfo(request.getOpenId(),request.getMerchantOrderId(),
+                            null,null,0,null);
+                    List<SMGGoodsInfo> list=this.smgGoodsInfoMapper.getSMGGoodsInfoBySMGGoodsInfo(smgGoodsInfo);
+                    if(list==null || list.size()==0){
+                        return JSONObject.toJSONString(new ResultMsg(false, ErrorEnum.SSCO006002.getCode(),
+                                ErrorEnum.SSCO006002.getMesssage(),(String) ""));
+                    }
+                    //TODO 第二步 请求支付接口生成支付订单
+                    SMGPayConfig dlpPayConfigEntity=this.payMaper.selectByPrimaryKey(request.getStoreId());
+                    if(dlpPayConfigEntity==null){
+                        log.error("dlpPayConfigEntity {}","查询出来的dlb支付配置为空");
+                        return JSONObject.toJSONString(new ResultMsg(false, ErrorEnum.SSCO006003.getCode(),
+                                ErrorEnum.SSCO006003.getMesssage(),(String) ""));
+                    }
+                    //重新赋值
+                    dlbPayConnfig.setAccesskey(dlpPayConfigEntity.getAccesskey());
+                    dlbPayConnfig.setSecretkey(dlpPayConfigEntity.getSecretkey());
+                    dlbPayConnfig.setAgentnum(dlpPayConfigEntity.getAgentnum());
+                    dlbPayConnfig.setCustomernum(dlpPayConfigEntity.getCustomernum());
+                    dlbPayConnfig.setMachinenum(dlpPayConfigEntity.getMachinenum());
+                    dlbPayConnfig.setShopnum(dlpPayConfigEntity.getShopnum());
+                    String timeUnix=getTimeUnix();
+                    String requestNum="";
+                    try {
+                        requestNum= RequestFacotry.getOrderId(request.getPosId(),request.getUserlineId());
+                        log.info("获取到的支付单号是 {}  openId是 {} ",requestNum,request.getOpenId());
+                    } catch (ApiSysException e) {
+                        e.printStackTrace();
+                    }
 
+                    JSONObject extraInfo=new JSONObject();
+                    extraInfo.put("payOrderId",requestNum);
+                    extraInfo.put("opendId",request.getOpenId());
+                    extraInfo.put("merchantOrderId",request.getMerchantOrderId());
+                    OrderPay orderPay=new OrderPay(dlbPayConnfig.getAgentnum(),dlbPayConnfig.getCustomernum(),
+                            dlbPayConnfig.getShopnum(),
+                            requestNum,request.getAmount(),"WX",request.getOpenId(),
+                            smgConnfig.getCallbackurl(),JSON.toJSONString(extraInfo),null);
+                    String body= JSONObject.toJSONString(orderPay);
+                    log.info("我是请求体携带的数据 {}",body);
+                    String url = "https://openapi.duolabao.com/v1/agent/order/pay/create";
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.setContentType(MediaType.APPLICATION_JSON);
+                    headers.set("accessKey",dlbPayConnfig.getAccesskey());
+                    headers.set("timestamp",timeUnix);
+                    String sign="secretKey="+dlbPayConnfig.getSecretkey()+"&timestamp="+timeUnix +
+                            "&path=/v1/agent/order/pay/create&body="+body;
+                    log.info("带签名的字符串 {}",sign);
+                    sign= SHA1.encode(sign);
+                    log.info("签名后的字符串 {}",sign);
+                    headers.set("token",sign.toUpperCase());
+
+                    HttpEntity<String> entity = new HttpEntity<String>(body, headers);
+                    ResponseEntity<String> responseEntity = restTemplate.postForEntity(url, entity, String.class);
+                    String result = responseEntity.getBody();
+                    log.info("我是拿到的返回结果 {}",result);
+                    //TODO 第三步 返回支付相关信息进行支付
+                    JSONObject jsonObject=JSON.parseObject(result);
+                    if(jsonObject.containsKey("data") && jsonObject.containsKey("result")
+                            && jsonObject.getString("result").equals("success")){
+                        //TODO 下单成功
+                        JSONObject json1=JSON.parseObject(jsonObject.getString("data"));
+                        JSONObject json2=JSON.parseObject(json1.getString("bankRequest"));
+//                        (String merchantOrderId, String payOrderId, String noncestr, String appid,
+//                                String packagetype, String timestamp,
+//                                String paysign, String sibgtype, String amount, String openId, String storeId)
+                        PayBack payBack=new PayBack(request.getMerchantOrderId(),json1.getString("requestNum"),
+                                json2.getString("NONCESTR"),json2.getString("APPID"),json2.getString("PACKAGE"),
+                                json2.getString("TIMESTAMP"),json2.getString("PAYSIGN"),json2.getString("SIBGTYPE"),
+                                request.getAmount(),request.getOpenId(),request.getStoreId());
+
+                        response=ResultMsgSuccess(JSONObject.toJSONString(payBack));
+                    }else {
+                        //TODO 下单失败
+                        log.error("请求支付接口生成订单内失败了");
+                        return JSONObject.toJSONString(new ResultMsg(false, ErrorEnum.SSCO006003.getCode(),
+                                ErrorEnum.SSCO006003.getMesssage(),(String) ""));
+                    }
                 }catch (Exception e){
                     e.printStackTrace();
-                    log.error("同步订单完成出错了 {}",e.getMessage());
+                    log.error("支付下单出错了 {}",e.getMessage());
+                    response=ResultMsgSeriousError();
                 }
-
+                break;
+            case orderSysn:
+                //订单同步  不需要回传
+                try{
+                    SMGPayConfig dlpPayConfigEntity=this.payMaper.selectByPrimaryKey(request.getStoreId());
+                    if(dlpPayConfigEntity==null){
+                        log.error("dlpPayConfigEntity {}","查询出来的dlb支付配置为空");
+                        return JSONObject.toJSONString(new ResultMsg(false, ErrorEnum.SSCO006003.getCode(),
+                                ErrorEnum.SSCO006003.getMesssage(),(String) ""));
+                    }
+                    //重新赋值
+                    dlbPayConnfig.setAccesskey(dlpPayConfigEntity.getAccesskey());
+                    dlbPayConnfig.setSecretkey(dlpPayConfigEntity.getSecretkey());
+                    dlbPayConnfig.setAgentnum(dlpPayConfigEntity.getAgentnum());
+                    dlbPayConnfig.setCustomernum(dlpPayConfigEntity.getCustomernum());
+                    dlbPayConnfig.setMachinenum(dlpPayConfigEntity.getMachinenum());
+                    dlbPayConnfig.setShopnum(dlpPayConfigEntity.getShopnum());
+                    String timeUnix=getTimeUnix();
+                    String requestNum=request.getPayOrderId();
+                    String urlAfter="/v1/agent/order/payresult/"
+                            +dlbPayConnfig.getAgentnum()+"/"
+                            +dlbPayConnfig.getCustomernum()+"/"
+                            +dlbPayConnfig.getShopnum()+"/"+requestNum;
+                    String url = "https://openapi.duolabao.com"+urlAfter;
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.set("accessKey",dlbPayConnfig.getAccesskey());
+                    headers.set("timestamp",timeUnix);
+                    String sign="secretKey="+dlbPayConnfig.getSecretkey()+"&timestamp="+timeUnix +
+                            "&path="+urlAfter;
+                    sign= SHA1.encode(sign).toUpperCase();
+                    headers.set("token",sign);
+                    MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
+                    requestBody.add("agentNum", dlbPayConnfig.getAgentnum());
+                    requestBody.add("customerNum", dlbPayConnfig.getCustomernum());
+                    requestBody.add("shopNum", dlbPayConnfig.getShopnum());
+                    requestBody.add("requestNum", requestNum);
+                    HttpEntity<MultiValueMap> requestEntity = new HttpEntity<MultiValueMap>(requestBody, headers);
+                    ResponseEntity<String> responseEntity =responseEntity = restTemplate.exchange(
+                            url,
+                            HttpMethod.GET,
+                            new HttpEntity<String>(headers),
+                            String.class,
+                            requestEntity);
+                    String result = responseEntity.getBody();
+                    log.info("queryPayOrder 拿到的结果 {}",result);
+                    JSONObject jsonObject=JSON.parseObject(result);
+                    if(jsonObject.containsKey("data") && jsonObject.containsKey("result")
+                            && jsonObject.getString("result").equals("success")){
+                        //TODO 查询支付状态
+                        jsonObject=JSON.parseObject(jsonObject.getString("data"));
+                        if(jsonObject.getString("status").equals("SUCCESS")){
+                            SMGGoodsInfo smgGoodsInfo=new SMGGoodsInfo(request.getOpenId(),
+                                    request.getMerchantOrderId(),request.getPayOrderId(),
+                                    0,1, Double.valueOf(jsonObject.getString("orderAmount")));
+                            int i=smgGoodsInfoMapper.updateOrderStatus(smgGoodsInfo);
+                            if(i>0){
+                                log.info("同步订单成功 OpenId {}, MerchantOrderId {} ",
+                                        request.getOpenId(),request.getMerchantOrderId());
+                            }else {
+                                log.info("同步订单完成出错了 OpenId {}, MerchantOrderId {} ",
+                                        request.getOpenId(),request.getMerchantOrderId());
+                            }
+                        }
+                    }
+                    response=ResultMsgSuccess("");
+                }catch (Exception e){
+                    e.printStackTrace();
+                    log.error("同步订单完成出错了 OpenId {}, MerchantOrderId {} ",
+                            request.getOpenId(),request.getMerchantOrderId());
+                    response=ResultMsgSeriousError();
+                }
                 break;
             default:
                 response="地址错误";
@@ -194,6 +491,16 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
         return response;
     }
 
+    public void commitCartInfo(Request request,ErrorEnum errorEnum) throws ApiSysException{
+        //TODO 这个是对整个购物车的操作
+        CommonServiceImpl.updateCartInfoMerchantOrderId(request, commMapper);
+        //TODO 得到会员信息
+        String vipNo="";
+        String bDiscount="0";
+        String fPFrate="100";
+        //TODO 计算获取购物车的信息
+        CommonServiceImpl.SubmitShoppingCartCalculation(request, vipNo, bDiscount, fPFrate,commMapper);
 
+    }
 
 }

@@ -23,10 +23,11 @@
     <result column="unit" jdbcType="VARCHAR" property="unit" />
     <result column="createTime" jdbcType="TIMESTAMP" property="createTime" />
     <result column="payedTime" jdbcType="TIMESTAMP" property="payedTime" />
+    <result column="showTime" jdbcType="TIMESTAMP" property="showTime" />
     <result column="checkUpNo" jdbcType="VARCHAR" property="checkUpNo" />
     <result column="checkUpName" jdbcType="VARCHAR" property="checkUpName" />
     <result column="receivingCode" jdbcType="VARCHAR" property="receivingCode" />
-
+    <result column="actualAmount" jdbcType="DECIMAL" property="actualAmount" />
   </resultMap>
 
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
@@ -37,14 +38,13 @@
 
   <delete id="deleteSMGGoodsInfo" parameterType="com.hlyf.smg.domin.SMGGoodsInfo">
     delete from tSMGGoodsInfo
-    where where openId = #{openId,jdbcType=VARCHAR}  AND orderStatus=0
+     where openId = #{openId,jdbcType=VARCHAR}  AND orderStatus=0
   </delete>
 
   <delete id="deleteSMGGoodsInfoBybarcodeAndopenId" parameterType="com.hlyf.smg.domin.SMGGoodsInfo">
     delete from tSMGGoodsInfo
-    where where openId = #{openId,jdbcType=VARCHAR} AND barcode = #{barcode,jdbcType=VARCHAR} AND orderStatus=0
+     where openId = #{openId,jdbcType=VARCHAR} AND barcode = #{barcode,jdbcType=VARCHAR} AND orderStatus=0
   </delete>
-
 
   <insert id="insert" parameterType="com.hlyf.smg.domin.SMGGoodsInfo">
     insert into tSMGGoodsInfo (openId, unionId,
@@ -52,13 +52,13 @@
       cGoodsNo,cGoodsName, amount, discountAmount,
       basePrice, price, qty, 
       weight, isWeight, barcode, 
-      unit,receivingCode)
+      unit,receivingCode,showTime)
     values ( #{openId,jdbcType=VARCHAR}, #{unionId,jdbcType=VARCHAR},
       #{storeId,jdbcType=VARCHAR}, #{merchantOrderId,jdbcType=VARCHAR}, #{payOrderId,jdbcType=VARCHAR}, 
       #{cGoodsNo,jdbcType=VARCHAR},#{cGoodsName,jdbcType=VARCHAR}, #{amount,jdbcType=DECIMAL}, #{discountAmount,jdbcType=DECIMAL},
       #{basePrice,jdbcType=DECIMAL}, #{price,jdbcType=DECIMAL}, #{qty,jdbcType=INTEGER}, 
       #{dweight,jdbcType=DECIMAL}, #{isWeight,jdbcType=BIT}, #{barcode,jdbcType=VARCHAR},
-      #{unit,jdbcType=VARCHAR},#{receivingCode,jdbcType=VARCHAR})
+      #{unit,jdbcType=VARCHAR},#{receivingCode,jdbcType=VARCHAR},#{showTime,jdbcType=TIMESTAMP})
   </insert>
 
 
@@ -100,12 +100,24 @@
     discountAmount = #{discountAmount,jdbcType=DECIMAL},
     basePrice = #{basePrice,jdbcType=DECIMAL},
     price = #{price,jdbcType=DECIMAL},
-    qty = #{qty,jdbcType=INTEGER},
-    weight = #{dweight,jdbcType=DECIMAL},
-    isWeight = #{isWeight,jdbcType=BIT},
-    unit = #{unit,jdbcType=VARCHAR}
+    qty = #{qty,jdbcType=INTEGER}
     where openId = #{openId,jdbcType=VARCHAR} AND barcode = #{barcode,jdbcType=VARCHAR} AND orderStatus=0
   </update>
+
+  <!--更改订单支付状态-->
+  <update id="updateOrderStatus" parameterType="com.hlyf.smg.domin.SMGGoodsInfo">
+    update tSMGGoodsInfo
+    set
+    payOrderId = #{payOrderId,jdbcType=VARCHAR},
+    orderStatus=#{orderStatus,jdbcType=INTEGER},
+    actualAmount=#{actualAmount,jdbcType=DECIMAL},
+    orderType=#{orderType,jdbcType=INTEGER}
+    <if test="payedTime !=null ">
+      ,payedTime = #{payedTime,jdbcType=TIMESTAMP}
+    </if>
+    where openId = #{openId,jdbcType=VARCHAR}  AND merchantOrderId = #{merchantOrderId,jdbcType=VARCHAR}
+  </update>
+
 
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     select lineId, openId, unionId, storeId, merchantOrderId, payOrderId, orderStatus, 
@@ -118,11 +130,26 @@
   <select id="selectOneByOpendIdAndOrderStatus" parameterType="java.lang.String" resultMap="BaseResultMap">
     select TOP 1 lineId, openId, unionId, storeId, merchantOrderId, payOrderId, orderStatus,
     orderType, cGoodsNo, cGoodsName, amount, discountAmount, basePrice, price, qty, weight,
-    isWeight, barcode, unit, createTime, payedTime, checkUpNo, checkUpName,receivingCode
+    isWeight, barcode, unit, createTime, payedTime, checkUpNo, checkUpName,receivingCode,showTime
     from tSMGGoodsInfo
-    WHERE openId=#{openId} AND orderStatus=0
+    WHERE openId=#{openId}  AND orderStatus=0
   </select>
 
+  <select id="selectByOpendIdAndOrderStatusAndBarcode" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select TOP 1 lineId, openId, unionId, storeId, merchantOrderId, payOrderId, orderStatus,
+    orderType, cGoodsNo, cGoodsName, amount, discountAmount, basePrice, price, qty, weight,
+    isWeight, barcode, unit, createTime, payedTime, checkUpNo, checkUpName,receivingCode
+    from tSMGGoodsInfo
+    WHERE openId=#{openId}  AND barcode = #{barcode,jdbcType=VARCHAR} AND orderStatus=0
+  </select>
+
+  <select id="selectLeaveSuperOrders" parameterType="com.hlyf.smg.domin.SMGGoodsInfo" resultMap="BaseResultMap">
+    select  lineId, openId, unionId, storeId, merchantOrderId, payOrderId, orderStatus,
+    orderType, cGoodsNo, cGoodsName, amount, discountAmount, basePrice, price, qty, weight,
+    isWeight, barcode, unit, createTime, payedTime, checkUpNo, checkUpName,receivingCode
+    from tSMGGoodsInfo
+    WHERE openId=#{openId,jdbcType=VARCHAR}  AND orderStatus=1
+  </select>
 
   <select id="selectAllByOpendIdAndOrderStatus" parameterType="java.lang.String" resultMap="BaseResultMap">
     select lineId, openId, unionId, storeId, merchantOrderId, payOrderId, orderStatus,
@@ -130,7 +157,7 @@
     isWeight, barcode, unit, createTime, payedTime, checkUpNo, checkUpName,receivingCode
     from tSMGGoodsInfo
     WHERE openId=#{openId} AND orderStatus=0
-    ORDER BY lineId ASC
+    ORDER BY lineId DESC
   </select>
 
 
@@ -139,5 +166,20 @@
     orderType, cGoodsNo, cGoodsName, amount, discountAmount, basePrice, price, qty, weight, 
     isWeight, barcode, unit, createTime, payedTime, checkUpNo, checkUpName,receivingCode
     from tSMGGoodsInfo
+  </select>
+
+  <select id="getSMGGoodsInfoBySMGGoodsInfo" parameterType="com.hlyf.smg.domin.SMGGoodsInfo">
+    select  lineId, openId, unionId, storeId, merchantOrderId, payOrderId, orderStatus,
+    orderType, cGoodsNo, cGoodsName, amount, discountAmount, basePrice, price, qty, weight,
+    isWeight, barcode, unit, createTime, payedTime, checkUpNo, checkUpName,receivingCode
+    from tSMGGoodsInfo
+    WHERE openId=#{openId,jdbcType=VARCHAR}
+          <if test="merchantOrderId !=null ">
+             AND merchantOrderId=#{merchantOrderId,jdbcType=VARCHAR}
+          </if>
+          <if test="orderStatus !=null ">
+            AND orderStatus=#{orderStatus,jdbcType=INTEGER}
+          </if>
+
   </select>
 </mapper>

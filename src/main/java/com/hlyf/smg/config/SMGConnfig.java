@@ -12,11 +12,18 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class SMGConnfig {
 
-    @Value("${dlb.isdandian}")
+    @Value("${smg.isdandian}")
     private Boolean isdandian;
 
-    @Value("${dlb.calprice}")
+    @Value("${smg.calprice}")
     private Boolean calprice;
+
+    @Value("${smg.callbackurl}")
+    private String callbackurl;
+
+    @Value("${smg.isacceptpayresult}")
+    private Boolean isacceptpayresult;
+
 
 
 

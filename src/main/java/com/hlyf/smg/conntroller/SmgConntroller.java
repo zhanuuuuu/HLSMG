@@ -37,4 +37,6 @@ public class SmgConntroller {
 
         return this.smgService.CommUrlFun(urlType,jsonParam);
     }
+
+
 }
