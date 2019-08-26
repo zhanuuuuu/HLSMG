@@ -144,7 +144,7 @@ CREATE procedure [dbo].[p_getSmgOrders]
 @openId varchar(64),   --小程序 opendId
 @pageNum INT,          --页码
 @Number  INT,          --每页显示条数
-@iFlag  INT            --状态 0 未支付 1 支付了待出厂 2 已完成 3~ (3以上代表全部) 全部
+@iFlag  INT            --状态 0 待支付 1 支付了待出厂 2 已完成 3~ (3以上代表全部) 全部
 
 AS
 BEGIN
@@ -156,7 +156,7 @@ BEGIN
 				FROM (SELECT ROW_NUMBER() OVER (ORDER BY  showTime DESC  ) AS rowNumber,*
 				FROM  (
 							 SELECT  A.openId,merchantOrderId,amount=SUM(amount)-SUM(discountAmount),
-									A.storeId,showTime,number=COUNT(merchantOrderId),storeName,orderStatus FROM tSMGGoodsInfo A
+									A.storeId,showTime,number=SUM(CASE WHEN isWeight=0 THEN qty ELSE 1 END),storeName,orderStatus FROM tSMGGoodsInfo A
 					INNER JOIN tSMGStoreLocation B
 					ON A.storeId=B.storeId
 					AND A.openId=@openId AND A.orderStatus=0
@@ -172,7 +172,7 @@ BEGIN
 				FROM (SELECT ROW_NUMBER() OVER (ORDER BY  showTime DESC  ) AS rowNumber,*
 				FROM  (
 							 SELECT  A.openId,merchantOrderId,amount=SUM(amount)-SUM(discountAmount),
-									A.storeId,showTime,number=COUNT(merchantOrderId),storeName,orderStatus FROM tSMGGoodsInfo A
+									A.storeId,showTime,number=SUM(CASE WHEN isWeight=0 THEN qty ELSE 1 END),storeName,orderStatus FROM tSMGGoodsInfo A
 					INNER JOIN tSMGStoreLocation B
 					ON A.storeId=B.storeId
 					AND A.openId=@openId AND A.orderStatus=1
@@ -188,7 +188,7 @@ BEGIN
 				FROM (SELECT ROW_NUMBER() OVER (ORDER BY showTime DESC  ) AS rowNumber,*
 				FROM  (
 							 SELECT  A.openId,merchantOrderId,amount=SUM(amount)-SUM(discountAmount),
-									A.storeId,showTime,number=COUNT(merchantOrderId),storeName,orderStatus FROM tSMGGoodsInfo A
+									A.storeId,showTime,number=SUM(CASE WHEN isWeight=0 THEN qty ELSE 1 END),storeName,orderStatus FROM tSMGGoodsInfo A
 					INNER JOIN tSMGStoreLocation B
 					ON A.storeId=B.storeId
 					AND A.openId=@openId AND A.orderStatus=2
@@ -202,7 +202,7 @@ BEGIN
 				FROM (SELECT ROW_NUMBER() OVER (ORDER BY  showTime DESC ) AS rowNumber,*
 				FROM  (
 							 SELECT  A.openId,merchantOrderId,amount=SUM(amount)-SUM(discountAmount),
-									A.storeId,showTime,number=COUNT(merchantOrderId),storeName,orderStatus FROM tSMGGoodsInfo A
+									A.storeId,showTime,number=SUM(CASE WHEN isWeight=0 THEN qty ELSE 1 END),storeName,orderStatus FROM tSMGGoodsInfo A
 					INNER JOIN tSMGStoreLocation B
 					ON A.storeId=B.storeId
 					AND A.openId=@openId

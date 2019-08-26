@@ -8,13 +8,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * Created by Administrator on 2019-08-15.
  */
 @RestController
 @RequestMapping("/good")
-@Api(value = "API - SmgConntroller", description = "商品购物车控制类 ")
+@ApiIgnore
 public class SmgConntroller {
     private static final Logger log= LoggerFactory.getLogger(SmgConntroller.class);
 

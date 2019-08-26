@@ -21,4 +21,6 @@ public interface SMGUserMapper {
     List<SMGUser> selectAll();
 
     int updateByPrimaryKey(SMGUser record);
+
+    int updateUnionIdByOpenId(SMGUser record);
 }

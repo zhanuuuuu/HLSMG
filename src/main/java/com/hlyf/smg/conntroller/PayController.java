@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
 
@@ -23,19 +24,14 @@ import static com.hlyf.smg.result.ResultMsg.ResultMsgSuccess;
  */
 @RestController
 @RequestMapping("/pay")
-@Api(value = "API - OfflineStoreConntroller", description = "线下线上门店类Api ")
+@ApiIgnore
 public class PayController {
     private static final Logger logger= LoggerFactory.getLogger(PayController.class);
 
     @Autowired
     private PayService payService;
 
-
     @ApiOperation(value="接收支付结果通知", notes="接收支付结果通知")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "requestNum", value = "单号",
-                    paramType ="query" ,required = false,dataType = "string",defaultValue = ""),
-    })
     @ApiResponses({
             @ApiResponse(code = 200, message = "Successful — 请求已完成",reference="77777",responseContainer="8888888"),
             @ApiResponse(code = 400, message = "请求中有语法问题，或不能满足请求"),
@@ -45,7 +41,7 @@ public class PayController {
             @ApiResponse(code = 500, message = "服务器不能完成请求")})
     @RequestMapping(value = "/api/acceptPayResultNotice", method = {RequestMethod.POST,RequestMethod.GET})
     @ResponseBody
-    public  String acceptPayResultNotice(
+    public  String acceptPayResultNoticeC(
                                        @RequestParam(value = "requestNum",required = true) String requestNum,
                                        @RequestParam(value = "orderNum",required = true) String orderNum,
                                        @RequestParam(value = "orderAmount",required = true) String orderAmount,

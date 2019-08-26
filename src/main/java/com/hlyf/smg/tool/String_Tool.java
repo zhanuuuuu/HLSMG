@@ -12,6 +12,21 @@ import java.util.regex.Pattern;
 
 public class String_Tool {
 
+	public static String listToString(List<String> mList) {
+		final String SEPARATOR = ",";
+		StringBuilder sb = new StringBuilder();
+		String convertedListStr = "";
+		if (null != mList && mList.size() > 0) {
+			for (String item : mList) {
+				sb.append(item);
+				sb.append(SEPARATOR);
+			}
+			convertedListStr = sb.toString();
+			convertedListStr = convertedListStr.substring(0, convertedListStr.length()
+					- SEPARATOR.length());
+			return convertedListStr;
+		} else return "";
+	}
 	/*方法二：推荐，速度最快
   * 判断是否为整数
   * @param str 传入的字符串

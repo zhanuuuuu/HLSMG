@@ -74,4 +74,11 @@ public interface SMGUrlConfig {
      */
     String selectOrdersDetail="selectOrdersDetail";
 
+    /**
+     * <pre>
+     *     得到公共的问题
+     * </pre>
+     */
+    String getCommonProblems="getCommonProblems";
+
 }

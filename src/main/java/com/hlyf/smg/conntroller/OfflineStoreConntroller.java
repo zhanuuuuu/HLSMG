@@ -7,6 +7,7 @@ import com.hlyf.smg.dao.SMGDao.SMGStoreLocationMapper;
 import com.hlyf.smg.domin.OfflineStore;
 import com.hlyf.smg.domin.SMGStoreLocation;
 import com.hlyf.smg.service.OfflineStoreService;
+import com.hlyf.smg.tool.LocationUtils;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,10 +70,16 @@ public class OfflineStoreConntroller {
 
     }
 
-    @ApiOperation(value="根据编号得到门店信息", notes="根据编号得到门店信息")
+    @ApiOperation(value="根据编号得到门店信息", notes="根据编号得到门店信息 " +
+            " 备注 ：1 全部不传 获取所有线上门店信息（不计算距离） 2 上传lineId 获取单个门店信息 " +
+            "        3 longitude latitude 经纬度必须成对出现,如果上传经纬度坐标 （1 2 都会计算并返回距离）")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "lineId", value = "lineId",
                     paramType ="query" ,required = false,dataType = "long",defaultValue = "0"),
+            @ApiImplicitParam(name = "longitude", value = "longitude",
+                    paramType ="query" ,required = false,dataType = "string",defaultValue = ""),
+            @ApiImplicitParam(name = "latitude", value = "latitude",
+                    paramType ="query" ,required = false,dataType = "string",defaultValue = ""),
     })
     @ApiResponses({
             @ApiResponse(code = 200, message = "Successful — 请求已完成",reference="77777",responseContainer="8888888"),
@@ -83,12 +90,20 @@ public class OfflineStoreConntroller {
             @ApiResponse(code = 500, message = "服务器不能完成请求")})
     @RequestMapping(value = "/api/getOnlineStores", method = RequestMethod.POST)
     @ResponseBody
-    public  String getOnlineStores(@RequestParam(value = "lineId",required = false) Long lineId
+    public  String getOnlineStores(@RequestParam(value = "lineId",required = false) Long lineId,
+                                   @RequestParam(value = "longitude",required = false) String longitude,
+                                   @RequestParam(value = "latitude",required = false) String latitude
     ){
         String response=ResultMsgEmpty();
         try{
             List<SMGStoreLocation> Stores=this.offlineStoreService.selectAllS(lineId);
             if(Stores!=null && Stores.size()>0){
+                if(longitude!=null && !longitude.equals("") && latitude!=null && !latitude.equals("")){
+                    for(SMGStoreLocation t:Stores){
+                        t.setDistance(LocationUtils.getDistance(Double.valueOf(latitude),Double.valueOf(longitude),
+                                Double.valueOf(t.getLatitude()),Double.valueOf(t.getLongitude())));
+                    }
+                }
                 response=ResultMsgSuccess(JSONObject.toJSONString(Stores,
                         SerializerFeature.WriteMapNullValue,
                         SerializerFeature.WriteNullListAsEmpty));

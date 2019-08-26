@@ -29,6 +29,13 @@
     set userTel = #{userTel,jdbcType=VARCHAR}
     where  openId = #{openId,jdbcType=VARCHAR}
   </update>
+
+  <update id="updateUnionIdByOpenId" parameterType="com.hlyf.smg.domin.SMGUser">
+    update tSMGUsers
+    set unionId = #{unionId,jdbcType=VARCHAR}
+    where  openId = #{openId,jdbcType=VARCHAR}
+  </update>
+
   <select id="selectByPrimaryKey" parameterType="map" resultMap="BaseResultMap">
     select lineId, openId, unionId, userTel, administration, createTime
     from tSMGUsers

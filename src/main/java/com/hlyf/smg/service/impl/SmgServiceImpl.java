@@ -68,6 +68,10 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
     @Autowired
     private SMGGoodsInfoLogMapper smgGoodsInfoLogMapper;
 
+    @Autowired
+    private SMGCommonProblemsMapper smgCommonProblemsMapper;
+
+
     @Override
     public List<cStoreGoods> GetcStoreGoodsS(String cStoreNo, List<String> barcodeList) throws ApiSysException {
 
@@ -245,6 +249,20 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
             case selectMemberInfo://会员查询
 
                 break;
+            case getCommonProblems:
+                try {
+                    List<SMGCommonProblems> SMGCommonProblems= smgCommonProblemsMapper.selectAll();
+                    if(SMGCommonProblems!=null && SMGCommonProblems.size()>0){
+                        response=ResultMsgSure(SMGCommonProblems);
+                    }else {
+                        response=ResultMsgEmpty();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    log.error("查询插件问题解决出现问题 ",e.getMessage());
+                    response=ResultMsgSeriousError();
+                }
+                break;
             case selectGoods:
                 try {
                     FrushGood frushGood=CommonServiceImpl.getIsFrushGood(request, this.posMain);
@@ -401,7 +419,6 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
                     sign= SHA1.encode(sign);
                     log.info("签名后的字符串 {}",sign);
                     headers.set("token",sign.toUpperCase());
-
                     HttpEntity<String> entity = new HttpEntity<String>(body, headers);
                     ResponseEntity<String> responseEntity = restTemplate.postForEntity(url, entity, String.class);
                     String result = responseEntity.getBody();
@@ -421,7 +438,7 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
                                 json2.getString("TIMESTAMP"),json2.getString("PAYSIGN"),json2.getString("SIBGTYPE"),
                                 request.getAmount(),request.getOpenId(),request.getStoreId());
 
-                        response=ResultMsgSuccess(JSONObject.toJSONString(payBack));
+                        response=ResultMsgSure(payBack);
                     }else {
                         //TODO 下单失败
                         log.error("请求支付接口生成订单内失败了");

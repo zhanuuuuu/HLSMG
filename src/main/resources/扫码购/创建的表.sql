@@ -130,7 +130,6 @@ DROP TABLE [dbo].[tSMGPosConfiguration]
         beizhu  VARCHAR(64)
         primary key(storeId)
 )
-
 --用户表
 IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = object_id(N'[dbo].[tSMGUsers]')
             AND OBJECTPROPERTY(id, N'IsUserTable') = 1)
@@ -142,5 +141,33 @@ DROP TABLE [dbo].[tSMGUsers]
         userTel VARCHAR(20),                --电话号码  只有授权电话的才可以购物
         administration INT  DEFAULT 0,     --默认0 是否有权操作门店位置登记
         createTime DATETIME DEFAULT (GETDATE())
+        primary key(openId)
+)
+
+--问题反馈表  每人每天只能反映一个问题
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = object_id(N'[dbo].[tSMGProblems]')
+            AND OBJECTPROPERTY(id, N'IsUserTable') = 1)
+DROP TABLE [dbo].[tSMGProblems]
+ CREATE TABLE tSMGProblems(
+        lineId   BIGINT IDENTITY(1,1),  --行号
+        openId VARCHAR(64),
+        unionId VARCHAR(64),
+        userTel VARCHAR(20),            --电话号码  只有授权电话的才可以购物
+        problemType VARCHAR(64),        --问题类别
+        description VARCHAR(200),       --问题描述
+        imageUrls   VARCHAR(150),
+        createTime DATETIME DEFAULT (GETDATE())
         primary key(lineId,openId)
+)
+
+--常见问题
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = object_id(N'[dbo].[tSMGCommonProblems]')
+            AND OBJECTPROPERTY(id, N'IsUserTable') = 1)
+DROP TABLE [dbo].[tSMGCommonProblems]
+ CREATE TABLE tSMGCommonProblems(
+        lineId   BIGINT IDENTITY(1,1),  --行号
+        problemTitle VARCHAR(64),       --问题Title
+        description VARCHAR(600),       --问题阐述 用,隔开
+        createTime DATETIME DEFAULT (GETDATE())
+        primary key(lineId)
 )
