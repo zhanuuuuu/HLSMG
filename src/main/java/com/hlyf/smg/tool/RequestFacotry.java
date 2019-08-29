@@ -175,6 +175,9 @@ public class RequestFacotry {
             if(jsonObject.containsKey("iFlag")){
                 request.setIFlag(jsonObject.getInteger("iFlag"));
             }
+            request.setAmount(jsonObject.getString("amount"));
+            request.setFormId(jsonObject.getString("formId"));
+
             if(request!=null){
                 return request;
             }else {

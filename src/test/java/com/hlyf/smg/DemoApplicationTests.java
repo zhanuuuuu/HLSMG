@@ -5,6 +5,7 @@ import com.hlyf.smg.dao.SMGDao.OfflineStoreDao;
 import com.hlyf.smg.domin.OfflineStore;
 import com.hlyf.smg.domin.Request;
 import com.hlyf.smg.exception.ApiSysException;
+import com.hlyf.smg.service.SmgService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -23,6 +24,18 @@ public class DemoApplicationTests {
 
 	@Autowired
 	private OfflineStoreDao offlineStoreDao;
+
+	@Autowired
+	private SmgService smgService;
+
+	@Test
+	public void testPushOrder() throws ApiSysException {
+
+		smgService.pushOrder("o_gYO5JnA-34K65x_kcxi25j4gMc",
+				"3f994843e90f492b89140cb118e4808b",
+				"wx2e37c0d0adbe6c53","3fb0f0bba307cc52424824664346f961",
+				"88201908211007540000000003918878");
+	}
 
 	@Test
 	public void contextLoads() throws ApiSysException {

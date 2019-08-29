@@ -21,6 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import static com.hlyf.smg.Singleton.MyTocken.getSingletonTocken;
 import static com.hlyf.smg.result.ResultMsg.ResultMsgError;
 import static com.hlyf.smg.result.ResultMsg.ResultMsgSuccess;
 
@@ -48,6 +49,9 @@ public class MiniServiceImpl implements MiniService {
             if(StringUtils.isEmpty(code) || StringUtils.isEmpty(appid) || StringUtils.isEmpty(appsecret)){
                 return resultString;
             }
+
+//            String resultTocken=getSingletonTocken(restTemplate,appid,appsecret);
+//            log.info("我是拿到的tocken {}",resultTocken);
             resultString=restTemplate.getForObject(
                     String.format("https://api.weixin.qq.com/sns/jscode2session?appid=%s&secret=%s&js_code=%s&grant_type=authorization_code",
                             appid,appsecret,code),
@@ -61,6 +65,7 @@ public class MiniServiceImpl implements MiniService {
                 SMGUser user=this.userMapper.selectByPrimaryKey(openid);
                 if(user!=null){
                     user.setSession_key(session_key);
+                    user.setUnionId(unionid);
                     String userJson=JSONObject.toJSONString(user, SerializerFeature.WriteMapNullValue);
                     resultString= ResultMsgSuccess(userJson);
                     //这里是更改unionid的
@@ -120,7 +125,7 @@ public class MiniServiceImpl implements MiniService {
         try{
             SMGProblems smgProblems=smgProblemsMapper.selectByPrimaryKey(
                     new SimpleDateFormat("yyyy-MM-dd").format(new Date()),openId);
-            if(smgProblems!=null){
+            if(smgProblems==null){
                 String imageUrls= String_Tool.listToString(urlImages);
                  smgProblems=new SMGProblems(openId,unionId,
                          userTel,problemType,description,imageUrls);

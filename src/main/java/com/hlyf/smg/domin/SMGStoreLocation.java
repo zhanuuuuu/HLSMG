@@ -52,6 +52,8 @@ public class SMGStoreLocation {
 
     private String posId;
 
+    private String tel;
+
     public SMGStoreLocation(String openId, String unionId, String province, String city, String location,
                             String storeId, String storeName, String longitude, String latitude, Integer limitNumber,String area) {
         this.openId = openId;

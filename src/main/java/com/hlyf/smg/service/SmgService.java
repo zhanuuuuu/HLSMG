@@ -28,5 +28,6 @@ public interface SmgService {
 
     void ClearGoodsToCartInfo(Request request, List<cStoreGoods> cStoreGoodsList, FrushGood frushGood) throws ApiSysException;
 
+    void pushOrder(String openid, String formid,String appid, String appsecret,String merchantOrderId);
 
 }

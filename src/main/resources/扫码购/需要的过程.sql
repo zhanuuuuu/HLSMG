@@ -1,47 +1,3 @@
-/**
-
- */
-IF EXISTS (SELECT * FROM DBO.SYSOBJECTS WHERE ID = OBJECT_ID(N'[dbo].[p_getSmgOrders]') and OBJECTPROPERTY(ID, N'IsProcedure') = 1)
-BEGIN
-	DROP PROCEDURE [dbo].[p_getSmgOrders]
-END
-GO
-CREATE procedure [dbo].[p_getSmgOrders]
-@openId varchar(64),   --小程序 opendId
-@pageNum INT,          --页码
-@Number  INT,          --每页显示条数
-@iFlag  INT            --状态 0 未支付 1 支付了待出厂 2 已完成 3~ (3以上代表全部) 全部
-
-AS
-BEGIN
-
-		DECLARE @AllNumber INT
-		DECLARE @Sql VARCHAR(8000)
-
-		IF @iFlag=0   --未支付
-		BEGIN
-		 SELECT * FROM tSMGGoodsInfo
-		END
-		ELSE
-
-		IF @iFlag=1  --待出厂
-		BEGIN
-		 SELECT * FROM tSMGGoodsInfo
-		END
-		ELSE
-
-		IF @iFlag=2  --已完成
-		BEGIN
-		 SELECT * FROM tSMGGoodsInfo
-		END
-		ELSE
-		             --显示全部
-		BEGIN
-		 SELECT * FROM tSMGGoodsInfo
-		END
-END
-
-GO
 
 /*
     把数据插入到临时表中
@@ -156,11 +112,11 @@ BEGIN
 				FROM (SELECT ROW_NUMBER() OVER (ORDER BY  showTime DESC  ) AS rowNumber,*
 				FROM  (
 							 SELECT  A.openId,merchantOrderId,amount=SUM(amount)-SUM(discountAmount),
-									A.storeId,showTime,number=SUM(CASE WHEN isWeight=0 THEN qty ELSE 1 END),storeName,orderStatus FROM tSMGGoodsInfo A
+									A.storeId,showTime,number=SUM(CASE WHEN isWeight=0 THEN qty ELSE 1 END),storeName,orderStatus,orderType FROM tSMGGoodsInfo A
 					INNER JOIN tSMGStoreLocation B
 					ON A.storeId=B.storeId
 					AND A.openId=@openId AND A.orderStatus=0
-					GROUP BY A.openId,merchantOrderId,A.storeId,showTime,storeName,orderStatus
+					GROUP BY A.openId,merchantOrderId,A.storeId,showTime,storeName,orderStatus,orderType
 
 				) as  Z ) as A WHERE RowNumber > @Number *(@pageNum- 1)
 		END
@@ -172,11 +128,11 @@ BEGIN
 				FROM (SELECT ROW_NUMBER() OVER (ORDER BY  showTime DESC  ) AS rowNumber,*
 				FROM  (
 							 SELECT  A.openId,merchantOrderId,amount=SUM(amount)-SUM(discountAmount),
-									A.storeId,showTime,number=SUM(CASE WHEN isWeight=0 THEN qty ELSE 1 END),storeName,orderStatus FROM tSMGGoodsInfo A
+									A.storeId,showTime,number=SUM(CASE WHEN isWeight=0 THEN qty ELSE 1 END),storeName,orderStatus,orderType FROM tSMGGoodsInfo A
 					INNER JOIN tSMGStoreLocation B
 					ON A.storeId=B.storeId
 					AND A.openId=@openId AND A.orderStatus=1
-					GROUP BY A.openId,merchantOrderId,A.storeId,showTime,storeName,orderStatus
+					GROUP BY A.openId,merchantOrderId,A.storeId,showTime,storeName,orderStatus,orderType
 
 				) as  Z ) as A WHERE RowNumber > @Number *(@pageNum- 1)
 		END
@@ -188,11 +144,11 @@ BEGIN
 				FROM (SELECT ROW_NUMBER() OVER (ORDER BY showTime DESC  ) AS rowNumber,*
 				FROM  (
 							 SELECT  A.openId,merchantOrderId,amount=SUM(amount)-SUM(discountAmount),
-									A.storeId,showTime,number=SUM(CASE WHEN isWeight=0 THEN qty ELSE 1 END),storeName,orderStatus FROM tSMGGoodsInfo A
+									A.storeId,showTime,number=SUM(CASE WHEN isWeight=0 THEN qty ELSE 1 END),storeName,orderStatus,orderType FROM tSMGGoodsInfo A
 					INNER JOIN tSMGStoreLocation B
 					ON A.storeId=B.storeId
 					AND A.openId=@openId AND A.orderStatus=2
-					GROUP BY A.openId,merchantOrderId,A.storeId,showTime,storeName,orderStatus
+					GROUP BY A.openId,merchantOrderId,A.storeId,showTime,storeName,orderStatus,orderType
 				) as  Z ) as A WHERE RowNumber > @Number *(@pageNum- 1)
 		END
 		ELSE
@@ -202,11 +158,11 @@ BEGIN
 				FROM (SELECT ROW_NUMBER() OVER (ORDER BY  showTime DESC ) AS rowNumber,*
 				FROM  (
 							 SELECT  A.openId,merchantOrderId,amount=SUM(amount)-SUM(discountAmount),
-									A.storeId,showTime,number=SUM(CASE WHEN isWeight=0 THEN qty ELSE 1 END),storeName,orderStatus FROM tSMGGoodsInfo A
+									A.storeId,showTime,number=SUM(CASE WHEN isWeight=0 THEN qty ELSE 1 END),storeName,orderStatus,orderType FROM tSMGGoodsInfo A
 					INNER JOIN tSMGStoreLocation B
 					ON A.storeId=B.storeId
 					AND A.openId=@openId
-					GROUP BY A.openId,merchantOrderId,A.storeId,showTime,storeName,orderStatus
+					GROUP BY A.openId,merchantOrderId,A.storeId,showTime,storeName,orderStatus,orderType
 				) as  Z ) as A WHERE RowNumber > @Number *(@pageNum- 1)
 		END
 END

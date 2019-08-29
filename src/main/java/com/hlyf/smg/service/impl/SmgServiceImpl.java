@@ -8,6 +8,8 @@ import com.hlyf.smg.config.SMGConnfig;
 import com.hlyf.smg.config.SMGUrlConfig;
 import com.hlyf.smg.dao.SMGDao.*;
 import com.hlyf.smg.domin.*;
+import com.hlyf.smg.domin.WxEntity.TemplateOrder;
+import com.hlyf.smg.domin.WxEntity.WxMssVo;
 import com.hlyf.smg.domin.payentity.*;
 import com.hlyf.smg.exception.ApiSysException;
 import com.hlyf.smg.exception.ErrorEnum;
@@ -25,10 +27,10 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
+import static com.hlyf.smg.Singleton.MyTocken.getSingletonTocken;
 import static com.hlyf.smg.result.ResultMsg.*;
 import static com.hlyf.smg.tool.String_Tool.getTimeUnix;
 
@@ -71,7 +73,8 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
     @Autowired
     private SMGCommonProblemsMapper smgCommonProblemsMapper;
 
-
+    @Autowired
+    private SMGUserMapper userMapper;
     @Override
     public List<cStoreGoods> GetcStoreGoodsS(String cStoreNo, List<String> barcodeList) throws ApiSysException {
 
@@ -134,6 +137,10 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
                 //直接插入
                 smgGoodsInfoMapper.insert(smgGoodsInfo);
             }else {
+                //TODO 判断是否是跳过称码直接输入的称重条码
+                if(storeGoods.getBWeight()){
+                    throw  new ApiSysException(ErrorEnum.SSCO010004);
+                }
                 //检测购物车是否存在改商品
                  smgGoodsInfo =smgGoodsInfoMapper
                         .selectByOpendIdAndOrderStatusAndBarcode(request.getOpenId(),frushGood.getBarcode());
@@ -205,6 +212,9 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
             throw  new ApiSysException(ErrorEnum.SSCO001002);
         }
     }
+
+
+
     @Override
     public void ClearGoodsToCartInfo(Request request, List<cStoreGoods> cStoreGoodsList, FrushGood frushGood) throws ApiSysException{
         try{
@@ -248,6 +258,18 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
         switch (urlType){
             case selectMemberInfo://会员查询
 
+                break;
+            case modifyFormId:   //保存向程序客户端的formId 方便后期推送
+                try {
+                    this.userMapper.updateUnionIdByOpenId(
+                            new SMGUser(request.getOpenId(),request.getUnionId(),null)
+                                    .setFormId(request.getFormId()));
+                    response=ResultMsgSuccess("");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    log.error("保存向程序客户端的formId出现问题 ",e.getMessage());
+                    response=ResultMsgSeriousError();
+                }
                 break;
             case getCommonProblems:
                 try {
@@ -404,7 +426,7 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
                     extraInfo.put("merchantOrderId",request.getMerchantOrderId());
                     OrderPay orderPay=new OrderPay(dlbPayConnfig.getAgentnum(),dlbPayConnfig.getCustomernum(),
                             dlbPayConnfig.getShopnum(),
-                            requestNum,request.getAmount(),"WX",request.getOpenId(),
+                            requestNum,smgConnfig.getIstest()==true ? smgConnfig.getTestmoney():request.getAmount(),"WX",request.getOpenId(),
                             smgConnfig.getCallbackurl(),JSON.toJSONString(extraInfo),null);
                     String body= JSONObject.toJSONString(orderPay);
                     log.info("我是请求体携带的数据 {}",body);
@@ -550,5 +572,73 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
         CommonServiceImpl.SubmitShoppingCartCalculation(request, vipNo, bDiscount, fPFrate,commMapper);
 
     }
+    /*
+    * 微信小程序推送到客户
+    * */
+    @Override
+    public void pushOrder(String openid, String formid,String appid, String appsecret,String merchantOrderId) {
+
+        SMGGoodsInfo smgGoodsInfo=new SMGGoodsInfo(openid,merchantOrderId,
+                null,null,0,null);
+        List<SMGGoodsInfo> list=this.smgGoodsInfoMapper.getSMGGoodsInfoBySMGGoodsInfo(smgGoodsInfo);
+        if(list==null || list.size()==0){
+           return;
+        }
+        String  payOrderId ="";
+        Double ActualAmount=0.0;
+        for(SMGGoodsInfo s:list){
+            payOrderId=s.getPayOrderId();
+            ActualAmount=s.getActualAmount();
+        }
+
+        //获取access_token
+        String access_token =getSingletonTocken(restTemplate,appid,appsecret);
+        log.info("我是拿到的tocken {}",access_token);
+        String url = "https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send" +
+                "?access_token=" + access_token;
+        //拼接推送的模版
+        WxMssVo wxMssVo = new WxMssVo();
+        wxMssVo.setTouser(openid);//用户openid
+        wxMssVo.setTemplate_id("Ai6h0WlVxzPeIy8R8Hafp7nMQdqjqousenkv1HSm-H4");//模版id
+        SMGUser user=this.userMapper.selectByPrimaryKey(openid);
+        wxMssVo.setForm_id(user.getFormId());//formid
+        wxMssVo.setPage("pages/order/orderDetail?opendId="+openid+"&merchantOrderId="+merchantOrderId+"&type=pushOrder");
+        Map<String, TemplateOrder> m = new HashMap<>(6);
+
+        TemplateOrder keyword1 = new TemplateOrder();
+        keyword1.setValue(merchantOrderId);
+        m.put("keyword1", keyword1);
+
+        TemplateOrder keyword2 = new TemplateOrder();
+        keyword2.setValue(payOrderId);
+        m.put("keyword2", keyword2);
+        wxMssVo.setData(m);
+
+        TemplateOrder keyword3 = new TemplateOrder();
+        keyword3.setValue("消费门店");
+        m.put("keyword3", keyword3);
+        wxMssVo.setData(m);
+
+        TemplateOrder keyword4 = new TemplateOrder();
+        keyword4.setValue(String.valueOf(ActualAmount));
+        m.put("keyword4", keyword4);
+        wxMssVo.setData(m);
+
+        TemplateOrder keyword5 = new TemplateOrder();
+        keyword5.setValue("13628672210");
+        m.put("keyword5", keyword5);
+        wxMssVo.setData(m);
+
+        TemplateOrder keyword6 = new TemplateOrder();
+        keyword6.setValue(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+        m.put("keyword6", keyword6);
+        wxMssVo.setData(m);
+
+        ResponseEntity<String> responseEntity =
+                restTemplate.postForEntity(url, wxMssVo, String.class);
+        log.error("小程序推送结果={}", responseEntity.getBody());
+
+    }
+
 
 }

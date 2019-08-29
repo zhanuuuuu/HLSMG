@@ -1,5 +1,6 @@
 package com.hlyf.smg.domin;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
@@ -25,9 +26,15 @@ public class SMGUser {
 
     private Integer administration;
 
+    @JSONField(format="yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
     private String session_key;
+
+
+    @JSONField(serialize = false)
+    private String formId;
+
 
     public SMGUser(String openId, String unionId) {
         this.openId = openId;
@@ -38,4 +45,6 @@ public class SMGUser {
         this.unionId = unionId;
         this.userTel = userTel;
     }
+
+
 }

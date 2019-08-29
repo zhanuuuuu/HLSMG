@@ -24,6 +24,7 @@ public class SaleLogs {
     private Double amount;
     private String storeId;
     private Integer orderStatus;
+    private Integer orderType;
     private String storeName;
     @JSONField(format="yyyy-MM-dd HH:mm:ss")
     private Date showTime;

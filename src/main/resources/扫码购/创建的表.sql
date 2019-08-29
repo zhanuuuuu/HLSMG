@@ -56,7 +56,8 @@ IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = object_id(N'[dbo].[tSMGStoreL
                   latitude VARCHAR(64),          --维度
                   limitNumber INT DEFAULT 1000,          --每单限购多少必须去收银台结账
                   createTime DATETIME DEFAULT (GETDATE()),
-                  updateTime DATETIME DEFAULT (GETDATE())  --修改时间
+                  updateTime DATETIME DEFAULT (GETDATE()),  --修改时间
+                  tel VARCHAR(20)
                   primary key(lineId,storeId)
               )
 
@@ -79,7 +80,7 @@ IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = object_id(N'[dbo].[tSMGMoneyO
                   primary key(lineId)
               )
 /*
-     线上钱包消费充值记录表
+    线上钱包消费充值记录表
  */
 IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = object_id(N'[dbo].[tSMGMoneySaleLog]')
                       AND OBJECTPROPERTY(id, N'IsUserTable') = 1)
@@ -89,11 +90,11 @@ IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = object_id(N'[dbo].[tSMGMoneyS
                   openId VARCHAR(64),
                   unionId VARCHAR(64),
                   storeId VARCHAR(64),
-                  merchantOrderId VARCHAR(64),  --我们的订单号(消费)  如果是充值(充值的单号)
-                  payOrderId VARCHAR(64),        --哆啦宝支付单据
-                  amount MONEY,                   --消费（或）的金额
-                  saleStatus INT  DEFAULT 0,     --默认0 消费 1 充值
-                  payType VARCHAR(32),            --消费或支付方式
+                  merchantOrderId VARCHAR(64),   --我们的订单号(消费)  如果是充值(充值的单号)
+                  payOrderId VARCHAR(64),         --哆啦宝支付单据
+                  amount MONEY,                    --消费（或）的金额
+                  saleStatus INT  DEFAULT 0,      --默认0 消费 1 充值
+                  payType VARCHAR(32),             --消费或支付方式
                   saleTime DATETIME DEFAULT (GETDATE())   --消费（或充值）的时间
                   primary key(lineId,merchantOrderId)
               )
@@ -126,7 +127,7 @@ DROP TABLE [dbo].[tSMGPosConfiguration]
         storeId VARCHAR(64),
         --下面是商品的基础字段
         posName VARCHAR(64), --库名
-        posid  VARCHAR(20), --对应我们的posid  前台收银编号
+        posid  VARCHAR(20), --对应我们的 posid  前台收银编号
         beizhu  VARCHAR(64)
         primary key(storeId)
 )
@@ -140,6 +141,7 @@ DROP TABLE [dbo].[tSMGUsers]
         unionId VARCHAR(64),
         userTel VARCHAR(20),                --电话号码  只有授权电话的才可以购物
         administration INT  DEFAULT 0,     --默认0 是否有权操作门店位置登记
+        formId  VARCHAR(100),               --推送用的
         createTime DATETIME DEFAULT (GETDATE())
         primary key(openId)
 )
@@ -165,9 +167,20 @@ IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = object_id(N'[dbo].[tSMGCommon
             AND OBJECTPROPERTY(id, N'IsUserTable') = 1)
 DROP TABLE [dbo].[tSMGCommonProblems]
  CREATE TABLE tSMGCommonProblems(
-        lineId   BIGINT IDENTITY(1,1),  --行号
+        lineId   BIGINT IDENTITY(1,1),   --行号
         problemTitle VARCHAR(64),       --问题Title
         description VARCHAR(600),       --问题阐述 用,隔开
         createTime DATETIME DEFAULT (GETDATE())
         primary key(lineId)
+)
+--formId 表
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = object_id(N'[dbo].[tSMGFormIds]')
+            AND OBJECTPROPERTY(id, N'IsUserTable') = 1)
+DROP TABLE [dbo].[tSMGFormIds]
+ CREATE TABLE tSMGFormIds(
+        lineId   BIGINT IDENTITY(1,1),  --行号
+        openId VARCHAR(64),
+        formId VARCHAR(20),
+        createTime DATETIME DEFAULT (GETDATE())
+        primary key(lineId,openId)
 )

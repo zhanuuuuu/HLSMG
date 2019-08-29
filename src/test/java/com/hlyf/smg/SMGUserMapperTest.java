@@ -48,4 +48,12 @@ public class SMGUserMapperTest {
         int i=this.userMapper.updateByPrimaryKey(new SMGUser("1",null,"123"));
         log.info("我是影响行数 {}",i);
     }
+    @Test
+    public void testupdateUnionIdByOpenIdSMGUser() {
+        int i=this.userMapper.updateUnionIdByOpenId(
+                new SMGUser("o_gYO5JnA-34K65x_kcxi25j4gMc","","123")
+                .setFormId("123456789"));
+        log.info("我是影响行数 {}",i);
+    }
+
 }

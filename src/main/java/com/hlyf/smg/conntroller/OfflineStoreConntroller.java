@@ -139,12 +139,13 @@ public class OfflineStoreConntroller {
                                   @RequestParam(value = "storeName",required = true) String storeName,
                                   @RequestParam(value = "longitude",required = true) String longitude,
                                   @RequestParam(value = "latitude",required = true) String latitude,
-                                  @RequestParam(value = "limitNumber",required = true) int limitNumber
+                                  @RequestParam(value = "limitNumber",required = true) int limitNumber,
+                                  @RequestParam(value = "tel",required = false) String tel
     ){
 
         return this.offlineStoreService.addSMGStoreLocation(
                 new SMGStoreLocation( openId,  unionId,  province,  city,  location,
-                 storeId,  storeName,  longitude,  latitude,  limitNumber, area));
+                 storeId,  storeName,  longitude,  latitude,  limitNumber, area).setTel(tel));
 
     }
 
@@ -167,14 +168,15 @@ public class OfflineStoreConntroller {
                                   @RequestParam(value = "longitude",required = true) String longitude,
                                   @RequestParam(value = "latitude",required = true) String latitude,
                                   @RequestParam(value = "limitNumber",required = true) int limitNumber,
-                                     @RequestParam(value = "lineId",required = false) Long lineId
+                                  @RequestParam(value = "lineId",required = false) Long lineId,
+                                  @RequestParam(value = "tel",required = false) String tel
     ){
         SMGStoreLocation smgStoreLocation= new SMGStoreLocation( openId,  unionId,  province,  city,  location,
                 null,  null,  longitude,  latitude,  limitNumber, area);
         smgStoreLocation.setLineId(lineId);
         smgStoreLocation.setUpdateTime(new Date());
+        smgStoreLocation.setTel(tel);
         return this.offlineStoreService.updateSMGStoreLocation(smgStoreLocation);
-
     }
 
 }

@@ -24,6 +24,14 @@ public class SMGConnfig {
     @Value("${smg.isacceptpayresult}")
     private Boolean isacceptpayresult;
 
+    @Value("${smg.istest}")
+    private Boolean istest;
+
+    @Value("${smg.testmoney}")
+    private String testmoney;
+
+
+
 
 
 

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hlyf.smg.dao.SMGDao.SMGFormIdsMapper">
+  <resultMap id="BaseResultMap" type="com.hlyf.smg.domin.WxEntity.SMGFormIds">
+    <id column="lineId" jdbcType="BIGINT" property="lineId" />
+    <id column="openId" jdbcType="VARCHAR" property="openId" />
+    <result column="formId" jdbcType="VARCHAR" property="formId" />
+    <result column="createTime" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="map">
+    delete from tSMGFormIds
+    where lineId = #{lineId,jdbcType=BIGINT}
+      and openId = #{openId,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.hlyf.smg.domin.WxEntity.SMGFormIds">
+    insert into tSMGFormIds ( openId, formId
+      )
+    values ( #{openId,jdbcType=VARCHAR}, #{formId,jdbcType=VARCHAR})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.hlyf.smg.domin.WxEntity.SMGFormIds">
+    update tSMGFormIds
+    set formId = #{formId,jdbcType=VARCHAR},
+      createTime = #{createTime,jdbcType=TIMESTAMP}
+    where lineId = #{lineId,jdbcType=BIGINT}
+      and openId = #{openId,jdbcType=VARCHAR}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="map" resultMap="BaseResultMap">
+    <![CDATA[
+        	select TOP 1 lineId, openId, formId, createTime
+            from tSMGFormIds
+            where openId = #{openId,jdbcType=VARCHAR} AND datediff(day,  createTime,GETDATE())< 6
+    ]]>
+
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select lineId, openId, formId, createTime
+    from tSMGFormIds
+  </select>
+</mapper>

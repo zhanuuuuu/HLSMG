@@ -42,6 +42,7 @@ public class Request {
     private Integer number;  //每页显示多少条
     private Integer iFlag;   //--状态 0 未支付 1 支付了待出厂 2 已完成 3~ (3以上代表全部) 全部
 
+    private String formId;  //用于小程序推送使用
     public Request(String storeId, String unionId, String openId,
                    Integer userlineId, String posName, String posId, String barcode, String merchantOrderId) {
         this.storeId = storeId;

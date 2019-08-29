@@ -33,5 +33,5 @@ public class cStoreGoods implements Serializable {
     private Integer packRate;
     private Double fVipScore_base;
     private Double fVipScore;
-
+    private Boolean bWeight;
 }

@@ -17,6 +17,7 @@
     <result column="posId" jdbcType="VARCHAR" property="posId" />
     <result column="limitNumber" jdbcType="INTEGER" property="limitNumber" />
     <result column="updateTime" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="tel" jdbcType="VARCHAR" property="tel" />
   </resultMap>
 
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
@@ -28,11 +29,11 @@
     insert into tSMGStoreLocation ( openId, unionId,
       province, city, location,
       storeId, storeName, longitude, 
-      latitude, limitNumber,area)
+      latitude, limitNumber,area,tel)
     values ( #{openId,jdbcType=VARCHAR}, #{unionId,jdbcType=VARCHAR},
       #{province,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, #{location,jdbcType=VARCHAR}, 
       #{storeId,jdbcType=VARCHAR}, #{storeName,jdbcType=VARCHAR}, #{longitude,jdbcType=VARCHAR}, 
-      #{latitude,jdbcType=VARCHAR}, #{limitNumber,jdbcType=INTEGER}, #{area,jdbcType=VARCHAR})
+      #{latitude,jdbcType=VARCHAR}, #{limitNumber,jdbcType=INTEGER}, #{area,jdbcType=VARCHAR}, #{tel,jdbcType=VARCHAR})
   </insert>
 
   <update id="updateByPrimaryKey" parameterType="com.hlyf.smg.domin.SMGStoreLocation">
@@ -46,23 +47,22 @@
       latitude = #{latitude,jdbcType=VARCHAR},
       limitNumber = #{limitNumber,jdbcType=INTEGER},
       updateTime = #{updateTime,jdbcType=TIMESTAMP},
-      area=#{area,jdbcType=VARCHAR}
+      area=#{area,jdbcType=VARCHAR},
+      tel=#{tel,jdbcType=VARCHAR}
     where lineId = #{lineId,jdbcType=BIGINT}
   </update>
 
-
   <select id="selectByStoreId" parameterType="java.lang.String" resultMap="BaseResultMap">
     select TOP 1 lineId, openId, unionId, province, city, location, A.storeId, storeName, longitude,
-    latitude, limitNumber, createTime, updateTime,area,posName, posid
+    latitude, limitNumber, createTime, updateTime,area,posName, posid,tel
     from tSMGStoreLocation A LEFT JOIN tSMGPosConfiguration B
     ON A.storeId=B.storeId
     where A.storeId = #{storeId,jdbcType=VARCHAR}
   </select>
 
-
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     select lineId, openId, unionId, province, city, location, A.storeId, storeName, longitude,
-    latitude, limitNumber, createTime, updateTime,area,posName, posid
+    latitude, limitNumber, createTime, updateTime,area,posName, posid,tel
     from tSMGStoreLocation A LEFT JOIN tSMGPosConfiguration B
     ON A.storeId=B.storeId
     where lineId = #{lineId}
@@ -71,15 +71,13 @@
 
   <select id="selectAll" resultMap="BaseResultMap" parameterType="java.lang.Long">
     select lineId, openId, unionId, province, city, location, A.storeId, storeName, longitude,
-    latitude, limitNumber, createTime, updateTime,area,posName, posid
+    latitude, limitNumber, createTime, updateTime,area,posName, posid,tel
     from tSMGStoreLocation A LEFT JOIN tSMGPosConfiguration B
     ON A.storeId=B.storeId
     where 1=1
     <if test="lineId != null ">
       AND lineId = #{lineId}
     </if>
-
     ORDER BY lineId ASC
-
   </select>
 </mapper>

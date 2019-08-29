@@ -138,6 +138,7 @@ public class MiniConntroller {
         List<String> urlImages=new ArrayList<>();
         String imageUrl=request.getSession().getServletContext().getRealPath("")
                 .replace("HLSMG","SMGImages");
+        imageUrl="C:\\Users\\Administrator\\Desktop\\Dubbo\\ceImages";
         File file1 = new File(request.getSession().getServletContext().getRealPath("")
                 .replace("HLSMG","SMGImages"));
         if(!file1.exists()){

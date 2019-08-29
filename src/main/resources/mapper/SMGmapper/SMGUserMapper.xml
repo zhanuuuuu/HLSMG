@@ -7,6 +7,7 @@
     <id column="openId" jdbcType="VARCHAR" property="openId" />
     <result column="unionId" jdbcType="VARCHAR" property="unionId" />
     <result column="userTel" jdbcType="VARCHAR" property="userTel" />
+    <result column="formId" jdbcType="VARCHAR" property="formId" />
     <result column="administration" jdbcType="INTEGER" property="administration" />
     <result column="createTime" jdbcType="TIMESTAMP" property="createTime" />
   </resultMap>
@@ -33,16 +34,19 @@
   <update id="updateUnionIdByOpenId" parameterType="com.hlyf.smg.domin.SMGUser">
     update tSMGUsers
     set unionId = #{unionId,jdbcType=VARCHAR}
+        <if test="formId != null ">
+          , formId = #{formId,jdbcType=VARCHAR}
+        </if>
     where  openId = #{openId,jdbcType=VARCHAR}
   </update>
 
   <select id="selectByPrimaryKey" parameterType="map" resultMap="BaseResultMap">
-    select lineId, openId, unionId, userTel, administration, createTime
+    select lineId, openId, unionId, userTel, administration, createTime,formId
     from tSMGUsers
     where  openId = #{openId,jdbcType=VARCHAR}
   </select>
   <select id="selectAll" resultMap="BaseResultMap">
-    select lineId, openId, unionId, userTel, administration, createTime
+    select lineId, openId, unionId, userTel, administration, createTime,formId
     from tSMGUsers
   </select>
 </mapper>

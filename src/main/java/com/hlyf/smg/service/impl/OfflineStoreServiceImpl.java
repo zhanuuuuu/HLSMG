@@ -83,7 +83,14 @@ public class OfflineStoreServiceImpl implements OfflineStoreService {
         SMGStoreLocation storeLocation=null;
         try{
             storeLocationMapper.updateByPrimaryKey(smgStoreLocation);
-            response=ResultMsgSuccess("操作成功");
+            List<SMGStoreLocation> Stores=this.storeLocationMapper.selectAll(null);
+            if(Stores!=null && Stores.size()>0){
+                response=ResultMsgSuccess(JSONObject.toJSONString(Stores,
+                        SerializerFeature.WriteMapNullValue,
+                        SerializerFeature.WriteNullListAsEmpty));
+            }else {
+                response=ResultMsgEmpty();
+            }
         }catch (Exception e){
             e.printStackTrace();
             log.error("更改门店失败了 {}",e.getMessage());

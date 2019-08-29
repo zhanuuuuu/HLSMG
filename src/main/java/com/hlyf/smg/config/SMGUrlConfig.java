@@ -81,4 +81,11 @@ public interface SMGUrlConfig {
      */
     String getCommonProblems="getCommonProblems";
 
+    /**
+     * <pre>
+     *     得到并保存或修改小程序的FormId
+     * </pre>
+     */
+    String modifyFormId="modifyFormId";
+
 }
