@@ -31,10 +31,7 @@ public class DemoApplicationTests {
 	@Test
 	public void testPushOrder() throws ApiSysException {
 
-		smgService.pushOrder("o_gYO5JnA-34K65x_kcxi25j4gMc",
-				"3f994843e90f492b89140cb118e4808b",
-				"wx2e37c0d0adbe6c53","3fb0f0bba307cc52424824664346f961",
-				"88201908211007540000000003918878");
+//
 	}
 
 	@Test

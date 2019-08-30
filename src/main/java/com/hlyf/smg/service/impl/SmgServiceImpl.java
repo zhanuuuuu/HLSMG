@@ -75,6 +75,10 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
 
     @Autowired
     private SMGUserMapper userMapper;
+
+    @Autowired
+    private SMGStoreLocationMapper storeLocationMapper;
+
     @Override
     public List<cStoreGoods> GetcStoreGoodsS(String cStoreNo, List<String> barcodeList) throws ApiSysException {
 
@@ -229,7 +233,7 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
     @Override
     public String SelectCart (Request request,String code,SMGGoodsInfoMapper smgGoodsInfoMapper) {
         try {
-            return CommonServiceImpl.SelectCartInfo(request,RequestFacotry.getErrorEnumByCode(code),smgGoodsInfoMapper);
+            return CommonServiceImpl.SelectCartInfoTwo(request,RequestFacotry.getErrorEnumByCode(code),smgGoodsInfoMapper,storeLocationMapper);
         } catch (ApiSysException e1) {
             e1.printStackTrace();
             log.error("系统出错了 严重 {} ",e1.getExceptionEnum().toString());
@@ -296,7 +300,7 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
                     this.SaveGoodsToCartInfo(
                             request,
                             storeGoodsList,frushGood);
-                    response=CommonServiceImpl.SelectCartInfo(request,ErrorEnum.SUCCESS,smgGoodsInfoMapper);
+                    response=CommonServiceImpl.SelectCartInfoTwo(request,ErrorEnum.SUCCESS,smgGoodsInfoMapper,storeLocationMapper);
                 } catch (ApiSysException e) {
                     e.printStackTrace();
                     log.error("获取商品出错了 ",e.getExceptionEnum().toString());
@@ -315,7 +319,7 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
                     this.UpdateGoodsToCartInfo(
                             request,
                             storeGoodsList,frushGood);
-                    response=CommonServiceImpl.SelectCartInfo(request,ErrorEnum.SUCCESS,smgGoodsInfoMapper);
+                    response=CommonServiceImpl.SelectCartInfoTwo(request,ErrorEnum.SUCCESS,smgGoodsInfoMapper,storeLocationMapper);
                 } catch (ApiSysException e) {
                     e.printStackTrace();
                     log.error("更改商品出错了 ",e.getExceptionEnum().toString());
@@ -328,7 +332,7 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
                     this.DeleteGoodsToCartInfo(
                             request,
                             null,null);
-                    response=CommonServiceImpl.SelectCartInfo(request,ErrorEnum.SUCCESS,smgGoodsInfoMapper);
+                    response=CommonServiceImpl.SelectCartInfoTwo(request,ErrorEnum.SUCCESS,smgGoodsInfoMapper,storeLocationMapper);
                 } catch (ApiSysException e) {
                     e.printStackTrace();
                     log.error("删除商品出错了 ",e.getExceptionEnum().toString());
@@ -341,7 +345,7 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
                     this.ClearGoodsToCartInfo(
                             request,
                             null,null);
-                    response=CommonServiceImpl.SelectCartInfo(request,ErrorEnum.SUCCESS,smgGoodsInfoMapper);
+                    response=CommonServiceImpl.SelectCartInfoTwo(request,ErrorEnum.SUCCESS,smgGoodsInfoMapper,storeLocationMapper);
                 } catch (ApiSysException e) {
                     e.printStackTrace();
                     log.error("删除商品出错了 ",e.getExceptionEnum().toString());
@@ -352,7 +356,7 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
             case commitCartInfo:
                 try {
                     this.commitCartInfo(request,ErrorEnum.SUCCESS);
-                    response=CommonServiceImpl.SelectCartInfo(request,ErrorEnum.SUCCESS,smgGoodsInfoMapper);
+                    response=CommonServiceImpl.SelectCartInfoTwo(request,ErrorEnum.SUCCESS,smgGoodsInfoMapper,storeLocationMapper);
                 } catch (ApiSysException e) {
                     e.printStackTrace();
                     log.error("提交购物车出错了 ",e.getExceptionEnum().toString());
@@ -377,7 +381,8 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
                 break;
             case selectOrdersDetail:
                 try {
-                    response=CommonServiceImpl.SelectCartInfoDeatil(request,ErrorEnum.SUCCESS,smgGoodsInfoMapper);
+                    response=CommonServiceImpl.SelectCartInfoDeatil(request,ErrorEnum.SUCCESS,
+                            smgGoodsInfoMapper,storeLocationMapper,null);
                 } catch (ApiSysException e) {
                     e.printStackTrace();
                     log.error("查询订详情出错了 ",e.getExceptionEnum().toString());
@@ -426,7 +431,8 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
                     extraInfo.put("merchantOrderId",request.getMerchantOrderId());
                     OrderPay orderPay=new OrderPay(dlbPayConnfig.getAgentnum(),dlbPayConnfig.getCustomernum(),
                             dlbPayConnfig.getShopnum(),
-                            requestNum,smgConnfig.getIstest()==true ? smgConnfig.getTestmoney():request.getAmount(),"WX",request.getOpenId(),
+                            requestNum,smgConnfig.getIstest()==true ? smgConnfig.getTestmoney():request.getAmount(),
+                            "WX_XCX",request.getOpenId(),
                             smgConnfig.getCallbackurl(),JSON.toJSONString(extraInfo),null);
                     String body= JSONObject.toJSONString(orderPay);
                     log.info("我是请求体携带的数据 {}",body);
@@ -457,8 +463,9 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
 //                                String paysign, String sibgtype, String amount, String openId, String storeId)
                         PayBack payBack=new PayBack(request.getMerchantOrderId(),json1.getString("requestNum"),
                                 json2.getString("NONCESTR"),json2.getString("APPID"),json2.getString("PACKAGE"),
-                                json2.getString("TIMESTAMP"),json2.getString("PAYSIGN"),json2.getString("SIBGTYPE"),
-                                request.getAmount(),request.getOpenId(),request.getStoreId());
+                                json2.getString("TIMESTAMP"),json2.getString("PAYSIGN"),json2.getString("SIGNTYPE"),
+                                smgConnfig.getIstest()==true ? smgConnfig.getTestmoney():request.getAmount(),
+                                request.getOpenId(),request.getStoreId());
 
                         response=ResultMsgSure(payBack);
                     }else {
@@ -537,6 +544,10 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
                                 smgMoneySaleLogMapper.insert(smgMoneySaleLog);
                             }
                             if(i>0){
+                                this.pushOrder(request.getOpenId(), request.getAppid(), request.getAppsecret(),
+                                        request.getMerchantOrderId(),request.getPayOrderId(),
+                                        Double.valueOf(jsonObject.getString("orderAmount")),
+                                        request.getStoreName(),request.getStoreTel());
                                 log.info("同步订单成功 OpenId {}, MerchantOrderId {} ",
                                         request.getOpenId(),request.getMerchantOrderId());
                             }else {
@@ -576,20 +587,8 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
     * 微信小程序推送到客户
     * */
     @Override
-    public void pushOrder(String openid, String formid,String appid, String appsecret,String merchantOrderId) {
-
-        SMGGoodsInfo smgGoodsInfo=new SMGGoodsInfo(openid,merchantOrderId,
-                null,null,0,null);
-        List<SMGGoodsInfo> list=this.smgGoodsInfoMapper.getSMGGoodsInfoBySMGGoodsInfo(smgGoodsInfo);
-        if(list==null || list.size()==0){
-           return;
-        }
-        String  payOrderId ="";
-        Double ActualAmount=0.0;
-        for(SMGGoodsInfo s:list){
-            payOrderId=s.getPayOrderId();
-            ActualAmount=s.getActualAmount();
-        }
+    public void pushOrder(String openid, String appid, String appsecret,
+                          String merchantOrderId,String payOrderId,Double ActualAmount,String storeName,String storeTel) {
 
         //获取access_token
         String access_token =getSingletonTocken(restTemplate,appid,appsecret);
@@ -615,7 +614,7 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
         wxMssVo.setData(m);
 
         TemplateOrder keyword3 = new TemplateOrder();
-        keyword3.setValue("消费门店");
+        keyword3.setValue(storeName);
         m.put("keyword3", keyword3);
         wxMssVo.setData(m);
 
@@ -625,7 +624,7 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
         wxMssVo.setData(m);
 
         TemplateOrder keyword5 = new TemplateOrder();
-        keyword5.setValue("13628672210");
+        keyword5.setValue(storeTel);
         m.put("keyword5", keyword5);
         wxMssVo.setData(m);
 
@@ -640,5 +639,63 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
 
     }
 
+    @Override
+    public String getselectOrdersDetail(String openId,
+                                        String merchantOrderId,Integer orderStatus){
+        String response="";
+        Request request=new Request();
+        request.setOpenId(openId);
+        request.setMerchantOrderId(merchantOrderId);
+        try {
+            response=CommonServiceImpl.SelectCartInfoDeatil(request,ErrorEnum.SUCCESS,smgGoodsInfoMapper,storeLocationMapper,orderStatus);
+        } catch (ApiSysException e) {
+            e.printStackTrace();
+            log.error("查询订详情出错了 ",e.getExceptionEnum().toString());
+            log.error("查询订详情出错了 ",e.getMessage());
+            response=ResultMsgSeriousError();
+        }
+        return response;
+    }
+
+    @Override
+    public String confirmOrderS(String openId, String merchantOrderId, String checkUpNo,
+                                String checkUpName, String amount, String extraInfo, String payOrderId, String storeId) {
+
+        String response=ResultMsgSuccess("");
+       try{
+           SMGGoodsInfo smgGoodsInfo=new SMGGoodsInfo(openId,
+                   merchantOrderId,payOrderId,
+                   2,1, Double.valueOf(amount));
+           smgGoodsInfo.setPayedTime(new Date());
+           smgGoodsInfo.setCGoodsNo(checkUpNo);
+           smgGoodsInfo.setCGoodsName(checkUpName);
+           int i=smgGoodsInfoMapper.updateOrderStatus(smgGoodsInfo);
+           SMGMoneySaleLog smgMoneySaleLog=smgMoneySaleLogMapper.selectByPrimaryKey(merchantOrderId);
+           if(smgMoneySaleLog==null){
+               //支付记录
+               smgMoneySaleLog=new SMGMoneySaleLog(null,openId,
+                       merchantOrderId,null,
+                       storeId,payOrderId,
+                       Double.valueOf(amount),1,"线下",null);
+               smgMoneySaleLogMapper.insert(smgMoneySaleLog);
+           }
+           if(i>0){
+               log.info("线下核销订单成功 OpenId {}, MerchantOrderId {} ",
+                       openId,
+                       merchantOrderId);
+           }else {
+               log.info("线下核销订单出错了 OpenId {}, MerchantOrderId {} ",
+                       openId,
+                       merchantOrderId);
+           }
+       }catch (Exception e){
+            e.printStackTrace();
+           response=ResultMsgError();
+            log.error("线下核销订单出错了 OpenId {}, MerchantOrderId {} ",
+                    openId,
+                    merchantOrderId);
+       }
+        return response;
+    }
 
 }

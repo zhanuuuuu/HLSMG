@@ -6,6 +6,7 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.hlyf.smg.dao.SMGDao.CommMapper;
 import com.hlyf.smg.dao.SMGDao.PosMainMapper;
 import com.hlyf.smg.dao.SMGDao.SMGGoodsInfoMapper;
+import com.hlyf.smg.dao.SMGDao.SMGStoreLocationMapper;
 import com.hlyf.smg.domin.*;
 import com.hlyf.smg.exception.ApiSysException;
 import com.hlyf.smg.exception.ErrorEnum;
@@ -103,8 +104,11 @@ public class CommonServiceImpl {
             String merchantOrderId="";
             BigDecimal decimaltotalFee = new BigDecimal("0");
             BigDecimal decimaldiscountFee = new BigDecimal("0");
+            String storeId="";
             if(smgGoodsInfos!=null && smgGoodsInfos.size()>0){
                 for(SMGGoodsInfo t:smgGoodsInfos){
+                    storeId=t.getStoreId();
+
                     totalFee=totalFee+t.getAmount();
                     discountFee=discountFee+t.getDiscountAmount();
 
@@ -116,8 +120,12 @@ public class CommonServiceImpl {
                 totalFee=decimaltotalFee.doubleValue();
                 discountFee=decimaldiscountFee.doubleValue();
                 actualFee=decimaltotalFee.subtract(decimaldiscountFee).doubleValue();
+            }else {
+                storeId=request.getStoreId();
             }
+
             cartInfo cartInfo=new cartInfo(merchantOrderId,totalFee,discountFee,actualFee,smgGoodsInfos);
+
             boolean returnStatus=errorEnum==ErrorEnum.SUCCESS ? true:false;
             ResultMsg resultMsg= new ResultMsg(returnStatus, errorEnum.getCode(),errorEnum.getMesssage(),cartInfo);
             String s1= JSON.toJSONString(resultMsg, SerializerFeature.WriteNullListAsEmpty,
@@ -131,13 +139,76 @@ public class CommonServiceImpl {
         }
     }
 
+    public static String SelectCartInfoTwo(Request request,ErrorEnum errorEnum,
+                                           SMGGoodsInfoMapper smgGoodsInfoMapper,
+                                           SMGStoreLocationMapper storeLocationMapper) throws ApiSysException {
+        try{
 
-    public static String SelectCartInfoDeatil(Request request,ErrorEnum errorEnum,SMGGoodsInfoMapper smgGoodsInfoMapper) throws ApiSysException {
+            List<SMGGoodsInfo> smgGoodsInfos=smgGoodsInfoMapper.selectAllByOpendIdAndOrderStatus(request.getOpenId());
+            double totalFee=0.0;
+            double discountFee=0.0;
+            double actualFee=0.0;
+            String merchantOrderId="";
+            BigDecimal decimaltotalFee = new BigDecimal("0");
+            BigDecimal decimaldiscountFee = new BigDecimal("0");
+            String storeId="";
+            if(smgGoodsInfos!=null && smgGoodsInfos.size()>0){
+                for(SMGGoodsInfo t:smgGoodsInfos){
+                    storeId=t.getStoreId();
+
+                    totalFee=totalFee+t.getAmount();
+                    discountFee=discountFee+t.getDiscountAmount();
+
+                    decimaltotalFee=decimaltotalFee.add(new BigDecimal(String.valueOf(t.getAmount())));
+                    decimaldiscountFee=decimaldiscountFee.add(new BigDecimal(String.valueOf(t.getDiscountAmount())));
+                    merchantOrderId=t.getMerchantOrderId();
+                }
+                //actualFee=totalFee-discountFee;
+                totalFee=decimaltotalFee.doubleValue();
+                discountFee=decimaldiscountFee.doubleValue();
+                actualFee=decimaltotalFee.subtract(decimaldiscountFee).doubleValue();
+            }else {
+                storeId=request.getStoreId();
+            }
+
+            cartInfo cartInfo=new cartInfo(merchantOrderId,totalFee,discountFee,actualFee,smgGoodsInfos);
+            SMGStoreLocation smgStoreLocation=storeLocationMapper.selectByStoreId(storeId);
+            if(smgStoreLocation!=null){
+                cartInfo.setStoreId(smgStoreLocation.getStoreId());
+                cartInfo.setStoreName(smgStoreLocation.getStoreName());
+            }
+            boolean returnStatus=errorEnum==ErrorEnum.SUCCESS ? true:false;
+            ResultMsg resultMsg= new ResultMsg(returnStatus, errorEnum.getCode(),errorEnum.getMesssage(),cartInfo);
+            String s1= JSON.toJSONString(resultMsg, SerializerFeature.WriteNullListAsEmpty,
+                    SerializerFeature.WriteNullNumberAsZero,
+                    SerializerFeature.WriteNullBooleanAsFalse);
+            return s1;
+        }catch (Exception e){
+            e.printStackTrace();
+            log.error("查询购物车:  {}",e.getMessage());
+            throw  new ApiSysException(ErrorEnum.SSCO001001);
+        }
+    }
+
+    /**
+     *
+     * @param request
+     * @param errorEnum
+     * @param smgGoodsInfoMapper
+     * @param storeLocationMapper
+     * @param orderStatus  0 未支付  1 待出场  2 已完成  null 不加入查询条件
+     * @return
+     * @throws ApiSysException
+     */
+
+    public static String SelectCartInfoDeatil(Request request,ErrorEnum errorEnum,
+                                              SMGGoodsInfoMapper smgGoodsInfoMapper,
+                                              SMGStoreLocationMapper storeLocationMapper,Integer orderStatus) throws ApiSysException {
         try{
 
             List<SMGGoodsInfo> smgGoodsInfos=null;
             SMGGoodsInfo smgGoodsInfo=new SMGGoodsInfo(request.getOpenId(),request.getMerchantOrderId(),
-                    null,null,null,null);
+                    null,null,orderStatus,null);
             smgGoodsInfos=smgGoodsInfoMapper.getSMGGoodsInfoBySMGGoodsInfo(smgGoodsInfo);
             double totalFee=0.0;
             double discountFee=0.0;
@@ -145,8 +216,12 @@ public class CommonServiceImpl {
             String merchantOrderId="";
             BigDecimal decimaltotalFee = new BigDecimal("0");
             BigDecimal decimaldiscountFee = new BigDecimal("0");
+            String storeId="";
             if(smgGoodsInfos!=null && smgGoodsInfos.size()>0){
                 for(SMGGoodsInfo t:smgGoodsInfos){
+
+                    storeId=t.getStoreId();
+
                     totalFee=totalFee+t.getAmount();
                     discountFee=discountFee+t.getDiscountAmount();
 
@@ -160,6 +235,13 @@ public class CommonServiceImpl {
                 actualFee=decimaltotalFee.subtract(decimaldiscountFee).doubleValue();
             }
             cartInfo cartInfo=new cartInfo(merchantOrderId,totalFee,discountFee,actualFee,smgGoodsInfos);
+
+            SMGStoreLocation smgStoreLocation=storeLocationMapper.selectByStoreId(storeId);
+            if(smgStoreLocation!=null){
+                cartInfo.setStoreId(smgStoreLocation.getStoreId());
+                cartInfo.setStoreName(smgStoreLocation.getStoreName());
+            }
+
             boolean returnStatus=errorEnum==ErrorEnum.SUCCESS ? true:false;
             ResultMsg resultMsg= new ResultMsg(returnStatus, errorEnum.getCode(),errorEnum.getMesssage(),cartInfo);
             String s1= JSON.toJSONString(resultMsg, SerializerFeature.WriteNullListAsEmpty,

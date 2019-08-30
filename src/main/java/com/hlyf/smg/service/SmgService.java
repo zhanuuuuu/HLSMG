@@ -28,6 +28,13 @@ public interface SmgService {
 
     void ClearGoodsToCartInfo(Request request, List<cStoreGoods> cStoreGoodsList, FrushGood frushGood) throws ApiSysException;
 
-    void pushOrder(String openid, String formid,String appid, String appsecret,String merchantOrderId);
+    void pushOrder(String openid,String appid, String appsecret,String merchantOrderId,
+                   String payOrderId,Double ActualAmount,String storeName,String storeTel);
 
+    //线下查询订单详情
+    String getselectOrdersDetail(String openId,
+                          String merchantOrderId,Integer orderStatus);
+
+    String confirmOrderS(String openId, String merchantOrderId, String checkUpNo,
+                         String checkUpName, String amount, String extraInfo, String payOrderId, String storeId);
 }

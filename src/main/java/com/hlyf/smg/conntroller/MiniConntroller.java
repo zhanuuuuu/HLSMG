@@ -1,5 +1,6 @@
 package com.hlyf.smg.conntroller;
 
+import com.hlyf.smg.config.SMGConnfig;
 import com.hlyf.smg.service.MiniService;
 import com.hlyf.smg.service.OfflineStoreService;
 import io.swagger.annotations.*;
@@ -31,6 +32,9 @@ public class MiniConntroller {
 
     @Autowired
     private MiniService miniService;
+
+    @Autowired
+    private SMGConnfig smgConnfig;
 
     @ApiOperation(value="根据code,appid，appsecret 获取openid", notes="根据code,appid，appsecret获取openid,或者获取 unionid（如果用户有关注了该小程序同主体的公众号 ）")
     @ApiImplicitParams({
@@ -98,7 +102,6 @@ public class MiniConntroller {
         return result;
     }
 
-
     @ApiOperation(value="问题反馈接口", notes="问题反馈接口 " +
             " 备注 ： 隐含的上传条件 这里文件的名为 fileName")
     @ApiResponses({
@@ -138,7 +141,10 @@ public class MiniConntroller {
         List<String> urlImages=new ArrayList<>();
         String imageUrl=request.getSession().getServletContext().getRealPath("")
                 .replace("HLSMG","SMGImages");
-        imageUrl="C:\\Users\\Administrator\\Desktop\\Dubbo\\ceImages";
+
+        if(smgConnfig.getIsuseimageurl()){
+            imageUrl=smgConnfig.getImageurl();
+        }
         File file1 = new File(request.getSession().getServletContext().getRealPath("")
                 .replace("HLSMG","SMGImages"));
         if(!file1.exists()){

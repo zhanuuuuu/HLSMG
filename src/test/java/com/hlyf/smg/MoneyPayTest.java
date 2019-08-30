@@ -175,5 +175,53 @@ public class MoneyPayTest {
 
     }
 
+    @Test
+    public void testReturnPay(){
+
+        String string = "88201908290913140000000003604803,\n" +
+                "88201908291529550000000003471159,\n" +
+                "88201908291809060000000003260509,\n" +
+                "88201908291812440000000003740428,\n" +
+                "88201908291814560000000003277146,\n" +
+                "88201908301028040000000003920926,\n" +
+                "88201908301031360000000003323136,\n" +
+                "88201908301127130000000003585267,\n" +
+                "88201908301133360000000003542805,\n" +
+                "88201908301134570000000003528976,\n" +
+                "88201908301135490000000003582620,\n" +
+                "88201908301606170000000006948096,\n" +
+                "88201908301609430000000006533750,\n" +
+                "88201908301616580000000006302528,\n" +
+                "88201908301617090000000007426407,\n" +
+                "88201908301640050000000006830081,\n";
+        String timeUnix=getTimeUnix();
+        String authCode=null;
+        String requestNum="88201908301640270000000007325064";
+//        SweepOrder(String agentNum, String customerNum, String authCode, String machineNum, String shopNum,
+//                String requestNum, String amount, String source, String tableNum)
+        SweepOrder sweepOrder=new SweepOrder(dlbPayConnfig.getAgentnum(),dlbPayConnfig.getCustomernum(),authCode,
+                null,dlbPayConnfig.getShopnum(),requestNum,null,null,null);
+        String body=JSONObject.toJSONString(sweepOrder);
+        log.info("我是请求体携带的数据 {}",body);
+        String url = "https://openapi.duolabao.com/v1/agent/order/refund";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("accessKey",dlbPayConnfig.getAccesskey());
+        headers.set("timestamp",timeUnix);
+        String sign="secretKey="+dlbPayConnfig.getSecretkey()+"&timestamp="+timeUnix +
+                "&path=/v1/agent/order/refund&body="+body;
+        log.info("带签名的字符串 {}",sign);
+        sign= SHA1.encode(sign).toUpperCase();
+        log.info("签名后的字符串 {}",sign);
+        headers.set("token",sign);
+
+        HttpEntity<String> entity = new HttpEntity<String>(body, headers);
+        ResponseEntity<String> responseEntity = restTemplate.postForEntity(url, entity, String.class);
+        String result = responseEntity.getBody();
+
+        log.info("我是拿到的返回结果 {}",result);
+
+    }
+
 
 }

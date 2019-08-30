@@ -31,6 +31,14 @@ public class SMGConnfig {
     private String testmoney;
 
 
+    @Value("${smg.isuseimageurl}")
+    private Boolean isuseimageurl;
+
+    @Value("${smg.imageurl}")
+    private String imageurl;
+
+
+
 
 
 

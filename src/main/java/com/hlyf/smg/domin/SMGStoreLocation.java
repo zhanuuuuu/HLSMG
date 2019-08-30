@@ -44,7 +44,7 @@ public class SMGStoreLocation {
     @JSONField(format="yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
 
-    private Double distance;
+    private Integer distance;
 
     private String area;
 

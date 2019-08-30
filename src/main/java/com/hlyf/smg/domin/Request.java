@@ -19,6 +19,9 @@ public class Request {
 
     //用户信息
     private String storeId;
+    private String storeName;
+    private String storeTel;
+
     private String unionId;
     private String openId;
     private Integer userlineId;
@@ -43,6 +46,8 @@ public class Request {
     private Integer iFlag;   //--状态 0 未支付 1 支付了待出厂 2 已完成 3~ (3以上代表全部) 全部
 
     private String formId;  //用于小程序推送使用
+    private String appid;
+    private String appsecret;
     public Request(String storeId, String unionId, String openId,
                    Integer userlineId, String posName, String posId, String barcode, String merchantOrderId) {
         this.storeId = storeId;

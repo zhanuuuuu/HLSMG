@@ -40,6 +40,10 @@ public class cartInfo {
      */
     private List<SMGGoodsInfo> items=new ArrayList<SMGGoodsInfo>();
 
+    private String storeId;
+
+    private String storeName;
+
     public cartInfo(String merchantOrderId, double totalFee, double discountFee, double actualFee, List<SMGGoodsInfo> items) {
         this.merchantOrderId = merchantOrderId;
         this.totalFee = totalFee;

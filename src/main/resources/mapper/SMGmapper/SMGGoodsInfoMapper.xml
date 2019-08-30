@@ -108,12 +108,26 @@
   <update id="updateOrderStatus" parameterType="com.hlyf.smg.domin.SMGGoodsInfo">
     update tSMGGoodsInfo
     set
-    payOrderId = #{payOrderId,jdbcType=VARCHAR},
-    orderStatus=#{orderStatus,jdbcType=INTEGER},
-    actualAmount=#{actualAmount,jdbcType=DECIMAL},
-    orderType=#{orderType,jdbcType=INTEGER}
+    payOrderId = #{payOrderId,jdbcType=VARCHAR}
+
+    <if test="orderStatus !=null ">
+      ,orderStatus=#{orderStatus,jdbcType=INTEGER}
+    </if>
+    <if test="actualAmount !=null ">
+      ,actualAmount=#{actualAmount,jdbcType=DECIMAL}
+    </if>
+    <if test="orderType !=null ">
+      ,orderType=#{orderType,jdbcType=INTEGER}
+    </if>
     <if test="payedTime !=null ">
       ,payedTime = #{payedTime,jdbcType=TIMESTAMP}
+    </if>
+
+    <if test="checkUpNo !=null ">
+      ,checkUpNo = #{checkUpNo,jdbcType=VARCHAR}
+    </if>
+    <if test="checkUpName !=null ">
+      ,checkUpName = #{checkUpName,jdbcType=VARCHAR}
     </if>
     where openId = #{openId,jdbcType=VARCHAR}  AND merchantOrderId = #{merchantOrderId,jdbcType=VARCHAR}
   </update>

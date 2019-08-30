@@ -178,6 +178,14 @@ public class RequestFacotry {
             request.setAmount(jsonObject.getString("amount"));
             request.setFormId(jsonObject.getString("formId"));
 
+            //
+            request.setStoreName(jsonObject.getString("storeName"));
+
+            //storeTel
+            request.setStoreTel(jsonObject.getString("storeTel"));
+            request.setAppid(jsonObject.getString("appid"));
+            request.setAppsecret(jsonObject.getString("appsecret"));
+
             if(request!=null){
                 return request;
             }else {

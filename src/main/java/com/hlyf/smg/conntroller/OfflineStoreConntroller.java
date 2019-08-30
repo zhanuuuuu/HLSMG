@@ -100,8 +100,9 @@ public class OfflineStoreConntroller {
             if(Stores!=null && Stores.size()>0){
                 if(longitude!=null && !longitude.equals("") && latitude!=null && !latitude.equals("")){
                     for(SMGStoreLocation t:Stores){
-                        t.setDistance(LocationUtils.getDistance(Double.valueOf(latitude),Double.valueOf(longitude),
-                                Double.valueOf(t.getLatitude()),Double.valueOf(t.getLongitude())));
+                        double distance=LocationUtils.getDistance(Double.valueOf(latitude),Double.valueOf(longitude),
+                                Double.valueOf(t.getLatitude()),Double.valueOf(t.getLongitude()));
+                        t.setDistance((int)distance);
                     }
                 }
                 response=ResultMsgSuccess(JSONObject.toJSONString(Stores,
@@ -116,7 +117,6 @@ public class OfflineStoreConntroller {
             response=ResultMsgError();
         }
         return response;
-
     }
 
     @ApiOperation(value="增加门店", notes="增加门店")
