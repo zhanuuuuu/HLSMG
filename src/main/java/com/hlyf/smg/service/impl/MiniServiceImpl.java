@@ -3,6 +3,7 @@ package com.hlyf.smg.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.hlyf.smg.config.SMGConnfig;
 import com.hlyf.smg.dao.SMGDao.SMGProblemsMapper;
 import com.hlyf.smg.dao.SMGDao.SMGUserMapper;
 import com.hlyf.smg.domin.SMGProblems;
@@ -41,15 +42,20 @@ public class MiniServiceImpl implements MiniService {
     @Autowired
     private SMGProblemsMapper smgProblemsMapper;
 
+    @Autowired
+    private SMGConnfig smgConnfig;
+
 
     @Override
     public String GetOpenIOrUniuiddByCode(String code, String appid, String appsecret) {
         String resultString=ResultMsgError();
         try{
+            appid=smgConnfig.getAppid();
+            appsecret=smgConnfig.getAppsecret();
+
             if(StringUtils.isEmpty(code) || StringUtils.isEmpty(appid) || StringUtils.isEmpty(appsecret)){
                 return resultString;
             }
-
 //            String resultTocken=getSingletonTocken(restTemplate,appid,appsecret);
 //            log.info("我是拿到的tocken {}",resultTocken);
             resultString=restTemplate.getForObject(

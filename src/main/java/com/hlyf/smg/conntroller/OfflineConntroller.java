@@ -104,4 +104,42 @@ public class OfflineConntroller {
                 ,openId,merchantOrderId,checkUpNo,checkUpName,amount,extraInfo);
         return this.smgService.confirmOrderS(openId,merchantOrderId,checkUpNo,checkUpName,amount,extraInfo,payOrderId,storeId);
     }
+
+    @ApiOperation(value="支付完成后通知后台", notes="支付成功后通知后台")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "openId", value = "openId",
+                    paramType ="query" ,required = true,dataType = "string",defaultValue = ""),
+            @ApiImplicitParam(name = "merchantOrderId", value = "订单号",
+                    paramType ="query" ,required = true,dataType = "string",defaultValue = ""),
+            @ApiImplicitParam(name = "payOrderId", value = "支付号",
+                    paramType ="query" ,required = true,dataType = "string",defaultValue = ""),
+            @ApiImplicitParam(name = "amount", value = "实际付款金额",
+                    paramType ="query" ,required = true,dataType = "string",defaultValue = ""),
+            @ApiImplicitParam(name = "storeId", value = "门店编号",
+                    paramType ="query" ,required = true,dataType = "string",defaultValue = ""),
+            @ApiImplicitParam(name = "extraInfo", value = "扩展字段 可以不上传",
+                    paramType ="query" ,required = false,dataType = "string",defaultValue = ""),
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Successful — 请求已完成",reference="77777",responseContainer="8888888"),
+            @ApiResponse(code = 400, message = "请求中有语法问题，或不能满足请求"),
+            @ApiResponse(code = 403, message = "服务器拒绝请求"),
+            @ApiResponse(code = 401, message = "未授权客户机访问数据"),
+            @ApiResponse(code = 404, message = "服务器找不到给定的资源；文档不存在"),
+            @ApiResponse(code = 500, message = "服务器不能完成请求")})
+    @RequestMapping(value = "/api/confirmPayed", method = RequestMethod.POST)
+    @ResponseBody
+    public  String confirmPayed(
+            @RequestParam(value = "openId",required = true) String openId,
+            @RequestParam(value = "merchantOrderId",required = true) String merchantOrderId,
+            @RequestParam(value = "payOrderId",required = true) String payOrderId,
+            @RequestParam(value = "amount",required = true) String amount,
+            @RequestParam(value = "storeId",required = true) String storeId,
+            @RequestParam(value = "storeName",required = true) String storeName,
+            @RequestParam(value = "extraInfo",required = false) String extraInfo
+    ){
+        log.info("线下核销上传的数据 openId:{}, merchantOrderId:{},amount:{}, extraInfo:{}, storeName:{} "
+                ,openId,merchantOrderId,amount,extraInfo,storeName);
+        return this.smgService.confirmPayS(openId,merchantOrderId,amount,extraInfo,payOrderId,storeId,storeName);
+    }
 }

@@ -44,6 +44,8 @@ public class cartInfo {
 
     private String storeName;
 
+
+
     public cartInfo(String merchantOrderId, double totalFee, double discountFee, double actualFee, List<SMGGoodsInfo> items) {
         this.merchantOrderId = merchantOrderId;
         this.totalFee = totalFee;

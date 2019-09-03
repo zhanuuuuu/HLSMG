@@ -1,23 +1,29 @@
 
+# 下面是自定义的配置类  有问题看代码吧
 smg:
   isdandian: false
   calprice: false
-  callbackurl: 'https://www.duolabao.com'
+  callbackurl: https://aaa.warelucent.cc/HLSMG/pay/api/acceptPayResultNotice
   isacceptpayresult: true
-
+  istest: true
+  testmoney: 0.01
+  isuseimageurl: false
+  imageurl: 'C:Users\Administrator\Desktop\Dubbo\ceImages'
+  appid: wx2e37c0d0adbe6c53
+  appsecret:
 dlbpay:
   #公钥
   accesskey:
   #公钥
   secretkey:
   #代理商编号
-  agentnum:
+  agentnum: 10001015546877943722641
   #商户编号
-  customernum:
+  customernum: 10001115604162210546074
   #机具编号
   machinenum:
   #店铺编号
-  shopnum:
+  shopnum: 10001215604163237455703
 
 spring:
   thymeleaf:
@@ -29,7 +35,7 @@ spring:
 smgdatabase:
   datasource:
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    url: jdbc:sqlserver://:2468;databaseName=Posmanagement_main
+    url: jdbc:sqlserver://;databaseName=Posmanagement_main
     username: sa
     password: pcserver123.
 

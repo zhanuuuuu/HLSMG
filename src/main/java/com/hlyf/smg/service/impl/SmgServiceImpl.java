@@ -590,6 +590,9 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
     public void pushOrder(String openid, String appid, String appsecret,
                           String merchantOrderId,String payOrderId,Double ActualAmount,String storeName,String storeTel) {
 
+        appid=smgConnfig.getAppid();
+        appsecret=smgConnfig.getAppsecret();
+
         //获取access_token
         String access_token =getSingletonTocken(restTemplate,appid,appsecret);
         log.info("我是拿到的tocken {}",access_token);
@@ -657,32 +660,25 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
         return response;
     }
 
+    //核销的
     @Override
     public String confirmOrderS(String openId, String merchantOrderId, String checkUpNo,
                                 String checkUpName, String amount, String extraInfo, String payOrderId, String storeId) {
 
-        String response=ResultMsgSuccess("");
+        String response=ResultMsgError();
        try{
            SMGGoodsInfo smgGoodsInfo=new SMGGoodsInfo(openId,
                    merchantOrderId,payOrderId,
-                   2,1, Double.valueOf(amount));
+                   1,2, Double.valueOf(amount));
            smgGoodsInfo.setPayedTime(new Date());
            smgGoodsInfo.setCGoodsNo(checkUpNo);
            smgGoodsInfo.setCGoodsName(checkUpName);
            int i=smgGoodsInfoMapper.updateOrderStatus(smgGoodsInfo);
-           SMGMoneySaleLog smgMoneySaleLog=smgMoneySaleLogMapper.selectByPrimaryKey(merchantOrderId);
-           if(smgMoneySaleLog==null){
-               //支付记录
-               smgMoneySaleLog=new SMGMoneySaleLog(null,openId,
-                       merchantOrderId,null,
-                       storeId,payOrderId,
-                       Double.valueOf(amount),1,"线下",null);
-               smgMoneySaleLogMapper.insert(smgMoneySaleLog);
-           }
            if(i>0){
                log.info("线下核销订单成功 OpenId {}, MerchantOrderId {} ",
                        openId,
                        merchantOrderId);
+               response=ResultMsgSuccess("");
            }else {
                log.info("线下核销订单出错了 OpenId {}, MerchantOrderId {} ",
                        openId,
@@ -698,4 +694,55 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
         return response;
     }
 
+    //支付成功的通知
+    @Override
+    public String confirmPayS(String openId, String merchantOrderId,
+                              String amount, String extraInfo, String payOrderId, String storeId,String storeName) {
+
+        String response=ResultMsgError();
+        try{
+            SMGGoodsInfo smgGoodsInfo=new SMGGoodsInfo(openId,
+                    merchantOrderId,payOrderId,
+                    1,1, Double.valueOf(amount));
+            smgGoodsInfo.setPayedTime(new Date());
+            int i=smgGoodsInfoMapper.updateOrderStatus(smgGoodsInfo);
+            SMGMoneySaleLog smgMoneySaleLog=smgMoneySaleLogMapper.selectByPrimaryKey(merchantOrderId);
+            if(smgMoneySaleLog==null){
+                //支付记录
+                smgMoneySaleLog=new SMGMoneySaleLog(null,openId,
+                        merchantOrderId,null,
+                        storeId,payOrderId,
+                        Double.valueOf(amount),1,"线下",null);
+                smgMoneySaleLogMapper.insert(smgMoneySaleLog);
+            }
+            if(i>0){
+                log.info("线下支付订单成功 OpenId {}, MerchantOrderId {} ",
+                        openId,
+                        merchantOrderId);
+                response=ResultMsgSuccess("");
+                new Thread(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                pushOrder(openId, smgConnfig.getAppid(), smgConnfig.getAppsecret(),
+                                        merchantOrderId,payOrderId,
+                                        Double.valueOf(amount),
+                                        storeName,"");
+                            }
+                        }
+                ).start();
+            }else {
+                log.info("线下支付订单出错了 OpenId {}, MerchantOrderId {} ",
+                        openId,
+                        merchantOrderId);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            response=ResultMsgError();
+            log.error("线下支付订单出错了 OpenId {}, MerchantOrderId {} ",
+                    openId,
+                    merchantOrderId);
+        }
+        return response;
+    }
 }

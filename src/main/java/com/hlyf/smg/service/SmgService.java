@@ -37,4 +37,8 @@ public interface SmgService {
 
     String confirmOrderS(String openId, String merchantOrderId, String checkUpNo,
                          String checkUpName, String amount, String extraInfo, String payOrderId, String storeId);
+
+    //线下支付成功
+    String confirmPayS(String openId, String merchantOrderId,  String amount,
+                       String extraInfo, String payOrderId, String storeId,String storeName);
 }

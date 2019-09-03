@@ -37,6 +37,12 @@ public class SMGConnfig {
     @Value("${smg.imageurl}")
     private String imageurl;
 
+    @Value("${smg.appid}")
+    private String appid;
+
+    @Value("${smg.appsecret}")
+    private String appsecret;
+
 
 
 
