@@ -10,7 +10,7 @@ smg:
   isuseimageurl: false
   imageurl: 'C:Users\Administrator\Desktop\Dubbo\ceImages'
   appid: wx2e37c0d0adbe6c53
-  appsecret:
+  appsecret: 4566
 dlbpay:
   #公钥
   accesskey:
