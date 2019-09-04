@@ -667,23 +667,32 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
 
         String response=ResultMsgError();
        try{
-           SMGGoodsInfo smgGoodsInfo=new SMGGoodsInfo(openId,
-                   merchantOrderId,payOrderId,
-                   1,2, Double.valueOf(amount));
-           smgGoodsInfo.setPayedTime(new Date());
-           smgGoodsInfo.setCGoodsNo(checkUpNo);
-           smgGoodsInfo.setCGoodsName(checkUpName);
-           int i=smgGoodsInfoMapper.updateOrderStatus(smgGoodsInfo);
-           if(i>0){
-               log.info("线下核销订单成功 OpenId {}, MerchantOrderId {} ",
-                       openId,
-                       merchantOrderId);
-               response=ResultMsgSuccess("");
-           }else {
-               log.info("线下核销订单出错了 OpenId {}, MerchantOrderId {} ",
-                       openId,
-                       merchantOrderId);
+
+           //TODO 这里核销以前先判断是否已经支付了
+           List<SMGGoodsInfo> smgGoodsInfos=null;
+           SMGGoodsInfo smgGoodsInfo=new SMGGoodsInfo(openId,merchantOrderId,
+                   null,null,1,null);
+           smgGoodsInfos=smgGoodsInfoMapper.getSMGGoodsInfoBySMGGoodsInfo(smgGoodsInfo);
+           if(smgGoodsInfos!=null && smgGoodsInfos.size()>0 ){
+               smgGoodsInfo=new SMGGoodsInfo(openId,
+                       merchantOrderId,payOrderId,
+                       1,2, Double.valueOf(amount));
+               smgGoodsInfo.setPayedTime(new Date());
+               smgGoodsInfo.setCGoodsNo(checkUpNo);
+               smgGoodsInfo.setCGoodsName(checkUpName);
+               int i=smgGoodsInfoMapper.updateOrderStatus(smgGoodsInfo);
+               if(i>0){
+                   log.info("线下核销订单成功 OpenId {}, MerchantOrderId {} ",
+                           openId,
+                           merchantOrderId);
+                   response=ResultMsgSuccess("");
+               }else {
+                   log.info("线下核销订单出错了 OpenId {}, MerchantOrderId {} ",
+                           openId,
+                           merchantOrderId);
+               }
            }
+
        }catch (Exception e){
             e.printStackTrace();
            response=ResultMsgError();
