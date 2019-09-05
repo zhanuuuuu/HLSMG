@@ -13,7 +13,7 @@ IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = object_id(N'[dbo].[tSMGGoodsI
                   merchantOrderId VARCHAR(64),   --我们的订单号
                   payOrderId VARCHAR(64),        --小程序的支付单号（线下支付,微信支付,电子卡支付）
                   orderStatus int DEFAULT 0,     --订单状态  0 待支付订单 1 已经支付待出厂订单 2 已完成订单（经收银员检查订单无疑问）
-                  orderType   int DEFAULT 0,     --结算方式 0 微信支付 1前台支付 2 线上钱包支付
+                  orderType   int DEFAULT 0,     --结算方式 0 微信支付 1移动POS支付  2 前台pos支付
                   cGoodsNo VARCHAR(30),
                   cGoodsName VARCHAR(100),
                   amount MONEY,

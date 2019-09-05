@@ -676,7 +676,7 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
            if(smgGoodsInfos!=null && smgGoodsInfos.size()>0 ){
                smgGoodsInfo=new SMGGoodsInfo(openId,
                        merchantOrderId,payOrderId,
-                       1,2, Double.valueOf(amount));
+                       null,2, Double.valueOf(amount));
                smgGoodsInfo.setPayedTime(new Date());
                smgGoodsInfo.setCGoodsNo(checkUpNo);
                smgGoodsInfo.setCGoodsName(checkUpName);
@@ -703,28 +703,42 @@ public class SmgServiceImpl implements SmgService ,SMGUrlConfig {
         return response;
     }
 
-    //支付成功的通知
+    //支付成功的通知    orderType   int DEFAULT 0,     --结算方式 0 微信支付 1 移动POS支付  2 前台pos支付
+    //                  orderStatus int DEFAULT 0,     --订单状态  0 待支付订单 1 已经支付待出厂订单 2 已完成订单
     @Override
     public String confirmPayS(String openId, String merchantOrderId,
                               String amount, String extraInfo, String payOrderId, String storeId,String storeName) {
+
+        return  this.payLog( openId,  merchantOrderId,
+                 amount,  extraInfo,  payOrderId,
+                 storeId, storeName,1,1);
+    }
+    //线下支付通知的方法
+    @Override
+    public   String payLog(String openId, String merchantOrderId,
+                              String amount, String extraInfo, String payOrderId,
+                            String storeId,String storeName,Integer orderType,Integer orderStatus) {
 
         String response=ResultMsgError();
         try{
             SMGGoodsInfo smgGoodsInfo=new SMGGoodsInfo(openId,
                     merchantOrderId,payOrderId,
-                    1,1, Double.valueOf(amount));
+                    orderType,orderStatus, Double.valueOf(amount));
             smgGoodsInfo.setPayedTime(new Date());
             int i=smgGoodsInfoMapper.updateOrderStatus(smgGoodsInfo);
-            SMGMoneySaleLog smgMoneySaleLog=smgMoneySaleLogMapper.selectByPrimaryKey(merchantOrderId);
-            if(smgMoneySaleLog==null){
-                //支付记录
-                smgMoneySaleLog=new SMGMoneySaleLog(null,openId,
-                        merchantOrderId,null,
-                        storeId,payOrderId,
-                        Double.valueOf(amount),1,"线下",null);
-                smgMoneySaleLogMapper.insert(smgMoneySaleLog);
-            }
             if(i>0){
+                SMGMoneySaleLog smgMoneySaleLog=smgMoneySaleLogMapper.selectByPrimaryKey(merchantOrderId);
+                if(smgMoneySaleLog==null){
+                    //支付记录
+//                    (Long lineId, String merchantOrderId, String openId, String unionId, String storeId,
+//                            String payOrderId, Double amount, Integer saleStatus, String payType, Date saleTime)
+                    smgMoneySaleLog=new SMGMoneySaleLog(null,merchantOrderId,openId,
+                            null,
+                            storeId,payOrderId,
+                            Double.valueOf(amount),1,"线下",null);
+                    smgMoneySaleLogMapper.insert(smgMoneySaleLog);
+                }
+
                 log.info("线下支付订单成功 OpenId {}, MerchantOrderId {} ",
                         openId,
                         merchantOrderId);

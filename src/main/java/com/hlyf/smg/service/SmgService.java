@@ -41,4 +41,9 @@ public interface SmgService {
     //线下支付成功
     String confirmPayS(String openId, String merchantOrderId,  String amount,
                        String extraInfo, String payOrderId, String storeId,String storeName);
+
+
+    String payLog(String openId, String merchantOrderId,
+                  String amount, String extraInfo, String payOrderId,
+                  String storeId,String storeName,Integer orderType,Integer orderStatus);
 }
